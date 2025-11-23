@@ -39,11 +39,12 @@ namespace cp{
 #endif
     static inline void help(int32_t argc, char *argv[]){
         printf("usage:%s 文本 [-i图片名称] [-f表情索引] [-o <图片名称>]\n", argv[0]);
-        printf("\t表情索引:\n\t\t0 = 高兴\n\t\t1 = 平常\n\t\t2 = 病娇\n\t\t3 = 脸红\n\t\t4 = 愤怒\n\t\t5 = 无语\n6 = 高兴q版, 7 = 傲娇\n");
+        printf("\t表情索引:\n\t\t0 = 高兴\n\t\t1 = 平常\n\t\t2 = 病娇\n\t\t3 = 脸红\n\t\t4 = 愤怒\n\t\t5 = 无语\n\t\t6 = 高兴_q版\n\t\t7 = 傲娇_q版\n\t\t8 = 平常_q版\n");
         printf("注意:\n");
         printf("\t[]必须用英文符号\n\t输出的文件只支持jpg、png图片\n");
         printf("\t有概率会发生文字重叠, 可以通过多次生成来重新调整位置\n");
         printf("\t如果多次调整仍有文字重叠, 则建议减少字数\n");
+        printf("\t使用q版时,字数不能过多,特别是平常_q版, 目前仅容纳两字, 后续可能增多\n");
     }
     static inline bool GetCommandParameter(int32_t argc, char *argv[], CommandParameter *parameter){
         if(argc < 2){

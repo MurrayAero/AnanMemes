@@ -37,7 +37,34 @@ namespace ananImage{
     //     newSize.y = std::max(newSize.y, 1u);
     //     assert(newSize.x < extent.x && newSize.y < extent.y);
     // }
-
+	static inline glm::uvec2 calculateRotatedSize(float angle, const glm::uvec2& size) {
+	    float angle_rad = glm::radians(angle);
+	    float cos_angle = std::cos(angle_rad), sin_angle = std::sin(angle_rad);
+    
+	    glm::vec2 corners[4] = {
+	        glm::vec2(0, 0),
+	        glm::vec2(size.x, 0),
+		    glm::vec2(0, size.y),
+	        glm::vec2(size.x, size.y)
+		};
+    
+	    glm::vec2 center(size.x * 0.5f, size.y * 0.5f);
+    
+	    glm::vec2 min = glm::vec2(std::numeric_limits<float>::max()), max = glm::vec2(std::numeric_limits<float>::lowest());
+    
+	    for (const auto& corner : corners) {
+	        glm::vec2 rotated = glm::vec2(
+		        (corner.x - center.x) * cos_angle - (corner.y - center.y) * sin_angle + center.x,
+	            (corner.x - center.x) * sin_angle + (corner.y - center.y) * cos_angle + center.y
+		    );
+	        min.x = std::min(min.x, rotated.x);
+	        max.x = std::max(max.x, rotated.x);
+	        min.y = std::min(min.y, rotated.y);
+			max.y = std::max(max.y, rotated.y);
+		}
+            
+		return glm::uvec2(std::ceil(max.x - min.x), std::ceil(max.y - min.y));
+	}    
     static inline void calculateImageSize(const glm::uvec2& extent, const glm::uvec2& size, glm::uvec2& newSize, float scaleFactor = 0.7f) {
         scaleFactor = glm::clamp(scaleFactor, 0.1f, 1.0f);
         
@@ -119,6 +146,74 @@ namespace ananImage{
                 }
             }
         }
+    }
+
+	static inline glm::vec4 samplePixel(const unsigned char *data, const glm::uvec2& size, const glm::vec2& currentPixel) {
+	    const uint32_t m_channels = 4;
+	    int32_t x0 = glm::clamp(static_cast<int32_t>(std::floor(currentPixel.x)), 0, static_cast<int>(size.x) - 1);
+	    int32_t y0 = glm::clamp(static_cast<int32_t>(std::floor(currentPixel.y)), 0, static_cast<int>(size.y) - 1);
+	    int32_t x1 = glm::clamp(x0 + 1, 0, static_cast<int>(size.x) - 1);
+	    int32_t y1 = glm::clamp(y0 + 1, 0, static_cast<int>(size.y) - 1);
+    
+	    glm::vec2 d = glm::vec2(currentPixel.x - x0, currentPixel.y - y0);
+    
+	    auto getPixel = [&](int px, int py) -> glm::vec4 {
+	        int index = (py * size.x + px) * m_channels;
+	        glm::vec4 result(0.0f);
+	        for (int c = 0; c < 4; ++c) {
+		        if (c < m_channels) {
+	                result[c] = data[index + c] / 255.0f;
+	            }
+	        }
+		    if (m_channels < 4) result.a = 1.0f;
+	        return result;
+	    };
+    
+	    glm::vec4 p00 = getPixel(x0, y0);
+	    glm::vec4 p10 = getPixel(x1, y0);
+	    glm::vec4 p01 = getPixel(x0, y1);
+	    glm::vec4 p11 = getPixel(x1, y1);
+    
+	    glm::vec4 top = glm::mix(p00, p10, d.x);
+	    glm::vec4 bottom = glm::mix(p01, p11, d.x);
+	    return glm::mix(top, bottom, d.y);
+	} 
+    static inline bool rotate(const unsigned char *data, const glm::uvec2& size, float angle, unsigned char *out, const glm::uvec2& outSize) {
+        const uint32_t m_channels = 4;
+        glm::vec2 old_center(size.x * 0.5f, size.y * 0.5f);
+        glm::vec2 new_center(outSize.x * 0.5f, outSize.y * 0.5f);
+        
+        float angle_rad = glm::radians(angle);
+        float cos_angle = std::cos(angle_rad);
+        float sin_angle = std::sin(angle_rad);
+        
+        for (int32_t y = 0; y < outSize.y; ++y) {
+            for (int32_t x = 0; x < outSize.x; ++x) {
+                glm::vec2 translated = glm::vec2(x - new_center.x, y - new_center.y);
+
+                glm::vec2 rotated = glm::vec2(
+                    translated.x * cos_angle + translated.y * sin_angle,
+                    -translated.x * sin_angle + translated.y * cos_angle
+                );
+                
+                glm::vec2 src = rotated + old_center;
+
+                int32_t new_index = (y * outSize.x + x) * m_channels;
+                
+                if (src.x >= 0 && src.x < size.x && src.y >= 0 && src.y < size.y) {
+                    glm::vec4 pixel = samplePixel(data, size, src);
+                    
+                    for (int32_t c = 0; c < m_channels; ++c) {
+                        out[new_index + c] = static_cast<unsigned char>(glm::clamp(pixel[c] * 255.0f, 0.0f, 255.0f));
+                    }
+                } else {
+                    for (int32_t c = 0; c < m_channels; ++c) {
+                        out[new_index + c] = 0;
+                    }
+                }
+            }
+        }
+        return true;
     }
 };
 #endif

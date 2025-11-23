@@ -18,6 +18,7 @@
 #define FONT_PATH "resource/fonts/"
 #define IMAGE_PATH "resource/image/" 
 #endif
+#define MINI_ANAN_TEXT_ANGLE -20
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 #define IS_ODD(NUM) ((NUM) % 2)
 #define IS_EVEN(NUM) (!IS_ODD(NUM))
@@ -31,7 +32,8 @@ enum class AnansFace{
     Angry,
     Speechless,
     MiniHappy,
-    MiniTsundere
+    MiniTsundere,
+    MiniBase
 };
 struct AnanImage{
     stbi_uc *data;
@@ -39,6 +41,7 @@ struct AnanImage{
     int32_t channels;
 };
 class AnansMemes{
+    AnansFace face;
     std::string currentPath;
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
