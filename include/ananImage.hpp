@@ -90,9 +90,9 @@ namespace ananImage{
         newSize.x = glm::clamp(newSize.x, 1u, extent.x > 1 ? extent.x - 1 : 1u);
         newSize.y = glm::clamp(newSize.y, 1u, extent.y > 1 ? extent.y - 1 : 1u);
     }
-    static inline void removeInvalidPixel(unsigned char *data, const glm::uvec2&size){
+    static inline void removeInvalidPixel(unsigned char *data, const glm::uvec2&size, const glm::uvec3&pixel){
         for (uint32_t i = 0; i < size.x * size.y; ++i){
-            if(data[i * 4] == MAX_BYTE){
+            if(data[i * 4] == pixel.x && data[i * 4 + 1] == pixel.y && data[i * 4 + 2] == pixel.z){
                 data[i * 4 + 3] = 0;
             }
         }

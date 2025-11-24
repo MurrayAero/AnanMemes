@@ -19,6 +19,7 @@
 #define IMAGE_PATH "resource/image/" 
 #endif
 #define MINI_ANAN_TEXT_ANGLE -20
+#define MINI_ANAN_EXQUISITE_TEXT_ANGLE -15
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 #define IS_ODD(NUM) ((NUM) % 2)
 #define IS_EVEN(NUM) (!IS_ODD(NUM))
@@ -33,7 +34,8 @@ enum class AnansFace{
     Speechless,
     MiniHappy,
     MiniTsundere,
-    MiniBase
+    MiniBase,
+    miniTsundere_Exquisite
 };
 struct AnanImage{
     stbi_uc *data;
@@ -64,7 +66,7 @@ public:
     AnansMemes(const std::string&path, AnansFace face);
     ~AnansMemes();
 
-    void AddHand();
+    bool AddHand(const std::string&fileName);
     //offset是白板的左上角, extent是白板的大小
     bool AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&extent);
     bool AddImage(const std::string&image, const glm::uvec2&offset, const glm::uvec2&extent);
