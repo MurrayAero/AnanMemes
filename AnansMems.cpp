@@ -83,8 +83,8 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "miniTsundere.jpg";
     case AnansFace::MiniBase:
         return "miniBase.jpg";
-    case AnansFace::miniTsundere_Exquisite:
-        return "miniTsundere_Exquisite.png";
+    case AnansFace::Tsundere:
+        return "Tsundere.png";
     default:
         break;
     }
@@ -187,10 +187,16 @@ AnansMemes::~AnansMemes(){
         doodle.data = nullptr;
     }
 }
-bool AnansMemes::AddHand(const std::string&fileName){
+bool AnansMemes::AddHand(){
     int32_t c;
     char imageName[MAX_PATH];
-    sprintf(imageName, "%s%s%s", currentPath.c_str(), IMAGE_PATH, fileName.c_str());
+    if(face == AnansFace::Tsundere){
+        sprintf(imageName, "%s%sHand_Tsundere.png", currentPath.c_str(), IMAGE_PATH);
+    }
+    else{
+        //目前的程序来看, 只能是一般表情
+        sprintf(imageName, "%s%sHand.png", currentPath.c_str(), IMAGE_PATH);
+    }
     stbi_uc *data = stbi_load(imageName, &hand.size.x, &hand.size.y, &c, STBI_rgb_alpha);
     if(!data){
         printf("load image error, image name %s\n", imageName);
@@ -231,21 +237,27 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         }
         glm::uvec2 currentFontSize = glm::uvec2(currentFontWidth, MAX_FONT_HEIGHT);
         const glm::uvec2 max = glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
+        int32_t randCount = 0;
         //TODO:应该改进随机算法和下面的判断函数
         do{
             fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
             fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-        }while(!inExtent(fontOffset, currentFontSize, offset, extent)  || isOverlapping(fontOffset, currentFontSize, mMediaLayout));
+            ++randCount;
+        }while((!inExtent(fontOffset, currentFontSize, offset, extent)  || isOverlapping(fontOffset, currentFontSize, mMediaLayout)) && randCount < MAX_RANDOM_COUNT);
+        if(randCount >= MAX_RANDOM_COUNT){
+            wprintf(L"randCount >= MAX_RANDOM_COUNT(%d), ignore current and all subsequent strings\n", MAX_RANDOM_COUNT);
+            break;
+        }
         cutSize.x = currentFontWidth;
 
-        if(face == AnansFace::MiniBase || face == AnansFace::miniTsundere_Exquisite){
-            glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::miniTsundere_Exquisite?MINI_ANAN_EXQUISITE_TEXT_ANGLE:MINI_ANAN_TEXT_ANGLE, cutSize);
+        if(face >= AnansFace::Tsundere){
+            glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, cutSize);
             const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
             stbi_uc * font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
             memset(font_data, 0, font_data_size);
             memset(new_data, 0, new_data_size);
             ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset, glm::uvec2(0));
-            ananImage::rotate(font_data, cutSize, face == AnansFace::miniTsundere_Exquisite?MINI_ANAN_EXQUISITE_TEXT_ANGLE:MINI_ANAN_TEXT_ANGLE, new_data, new_size);
+            ananImage::rotate(font_data, cutSize, face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, new_data, new_size);
             // stbi_write_png("rotate_font.png", cutSize.x, cutSize.y, 4, font_data, 0);
             // stbi_write_png("rotate_new_font.png", new_size.x, new_size.y, 4, new_data, 0);
 #ifdef DEBUG
@@ -266,7 +278,8 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         mMediaLayout.push_back(pos);
 
         currentFontIndex += it.length();
-        if(index != split.size() - 1 && split[index + 1][0] != '['){
+
+        if(index != split.size() - 1 && ananStr::GetFirstPunctuationPos(text) != std::string::npos && split[index + 1][0] != '['){
             ++currentFontIndex;
         }
         ++index;
@@ -338,6 +351,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
 // }
 
 bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, const glm::uvec2&extent){
+    //给新安安添加的图片也需要旋转
     if(doodle.data){
         delete[]doodle.data;
         doodle.data = nullptr;
@@ -353,11 +367,19 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     doodle.channels = 4;
     doodle.size = imageSize;
     const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
-
     doodle.data = new stbi_uc[uImageSize];
 
     if(imageSize != glm::uvec2(width, height)){
         stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
+    }
+
+    if(face == AnansFace::Tsundere){
+        imageSize = ananImage::calculateRotatedSize(TSUNDERE_ANAN_ANGLE, imageSize);
+        stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];
+        ananImage::rotate(doodle.data, doodle.size, TSUNDERE_ANAN_ANGLE, temp, imageSize);
+        delete[]doodle.data;
+        doodle.data = temp;
+        doodle.size = imageSize;
     }
 
     const glm::uvec2 max = glm::uvec2(extent.x > MAX_FONT_WIDTH ? extent.x - MAX_FONT_WIDTH : 0, extent.y > MAX_FONT_HEIGHT ? extent.y - MAX_FONT_HEIGHT : 0);

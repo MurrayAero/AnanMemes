@@ -7,6 +7,9 @@
 #include <codecvt>
 #ifdef _WIN32
 #include <Windows.h>
+#else
+#include <unistd.h>
+extern char *optarg;
 #endif
 namespace cp{
     struct CommandParameter{
@@ -38,25 +41,36 @@ namespace cp{
     }
 #endif
     static inline void help(int32_t argc, char *argv[]){
-        printf("usage:%s 文本 [-i图片名称] [-f表情索引] [-o <图片名称>]\n", argv[0]);
-        printf("\t表情索引:\n\t\t0 = 高兴\n\t\t1 = 平常\n\t\t2 = 病娇\n\t\t3 = 脸红\n\t\t4 = 愤怒\n\t\t5 = 无语\n\t\t6 = 高兴_q版\n\t\t7 = 傲娇_q版\n\t\t8 = 平常_q版\n\t\t9 = 傲娇_2_q版\n");
-        printf("注意:\n");
-        printf("\t[]必须用英文符号\n\t输出的文件只支持jpg、png图片\n");
-        printf("\t有概率会发生文字重叠, 可以通过多次生成来重新调整位置\n");
-        printf("\t如果多次调整仍有文字重叠, 则建议减少字数\n");
-        printf("\t使用q版时,字数不能过多,特别是平常_q版, 目前仅容纳两字, 后续可能增多\n");
+        printf("usage:[-t text] [-i image] [-f face] [-o out image]\n");
+        printf("example:-t \"input text\" -i input.png -f 6 -o out.png\n");
+        printf("option:\n");
+        printf("\t-t\ttext on anan's notepad.\n");
+        printf("\t-i\timage on anan's notepad.\n");
+        printf("\t-f\tanan's face\n");
+        printf("\t-o\tanan's\n");
+        printf("face index:\n");
+        printf("\t0 = happy\n");
+        printf("\t1 = normal\n");
+        printf("\t2 = yandere\n");
+        printf("\t3 = blush\n");
+        printf("\t4 = angry\n");
+        printf("\t5 = speechless\n");
+        printf("\t6 = tsundere\n");
+        printf("\t7 = happy_mini\n");
+        printf("\t8 = tsundere_mini\n");
+        printf("\t9 = normal_mini\n");
+        printf("explain:\n");
+        printf("\tuse -t, -i, or both.\n");
+        printf("\tenglish delimiters only.\n");
     }
+#ifdef _WIN32
     static inline bool GetCommandParameter(int32_t argc, char *argv[], CommandParameter *parameter){
         if(argc < 2){
             return false;
         }
-#ifdef _WIN32
         int32_t wargc;
         wchar_t** wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
         parameter->text = wargv[1];
-#else
-        parameter->text = utf8_to_wstring(argv[1]);
-#endif
         parameter->current_path = get_parameter_path(argv[0]);
         for (int32_t i = 0; i < argc; i++){
             if(argv[i] && argv[i][0] == '-'){
@@ -67,7 +81,6 @@ namespace cp{
                     parameter->face = atoi(argv[i] + 2);
                 }
                 else if(argv[i][1] == 'i'){
-                    parameter->image = argv[i] + 2;
                 }
             }
             else{
@@ -79,5 +92,33 @@ namespace cp{
         }
         return true;
     }
+#else
+    static inline bool GetCommandParameter(int32_t argc, char *argv[], CommandParameter *parameter){
+        if(argc < 2){
+            return false;
+        }
+        //getopt_long长选项--
+        int32_t opt;
+        parameter->current_path = get_parameter_path(argv[0]);
+        while ((opt = getopt(argc, argv, "t:i:f:o:")) != -1){
+            if(opt == 't'){
+                parameter->text = utf8_to_wstring(optarg);
+            }
+            else if(opt == 'i'){
+                parameter->image = optarg;
+            }
+            else if(opt == 'f'){
+                parameter->face = atoi(optarg);
+            }
+            else if(opt == 'i'){
+                const char *png = strstr(optarg, ".png"), *jpg = strstr(optarg, ".jpg");
+                if(png || jpg){
+                    parameter->out = optarg;
+                }
+            }
+        }
+        return true;
+    }
+#endif
 };
 #endif

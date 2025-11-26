@@ -18,24 +18,29 @@
 #define FONT_PATH "resource/fonts/"
 #define IMAGE_PATH "resource/image/" 
 #endif
-#define MINI_ANAN_TEXT_ANGLE -20
-#define MINI_ANAN_EXQUISITE_TEXT_ANGLE -15
+#define MAX_RANDOM_COUNT 5000
+
+#define MINI_ANAN_ANGLE -20
+#define TSUNDERE_ANAN_ANGLE -15
+
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
-#define IS_ODD(NUM) ((NUM) % 2)
-#define IS_EVEN(NUM) (!IS_ODD(NUM))
+
+// #define IS_ODD(NUM) ((NUM) % 2)
+// #define IS_EVEN(NUM) (!IS_ODD(NUM))
+
 #define MAX_FONT_WIDTH 50u
 #define MAX_FONT_HEIGHT MAX_FONT_WIDTH
 enum class AnansFace{
-    Base = 0,
-    Happy,
+    Happy = 0,
+    Base,
     Yandere,
     Blush,
     Angry,
     Speechless,
+    Tsundere,
     MiniHappy,
     MiniTsundere,
-    MiniBase,
-    miniTsundere_Exquisite
+    MiniBase
 };
 struct AnanImage{
     stbi_uc *data;
@@ -66,7 +71,7 @@ public:
     AnansMemes(const std::string&path, AnansFace face);
     ~AnansMemes();
 
-    bool AddHand(const std::string&fileName);
+    bool AddHand();
     //offset是白板的左上角, extent是白板的大小
     bool AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&extent);
     bool AddImage(const std::string&image, const glm::uvec2&offset, const glm::uvec2&extent);
