@@ -6,6 +6,9 @@
 #include <iostream>
 #include "glm/glm.hpp"
 #include "stb_truetype.h"
+#ifndef ROW_COLUMN_TO_INDEX
+#define ROW_COLUMN_TO_INDEX(ROW_INDEX, COLUMN_INDEX, COLUMN)((ROW_INDEX) * (COLUMN) + (COLUMN_INDEX))
+#endif
 namespace fonts{
     struct FontAttribute{
         glm::uvec2 size;
@@ -125,33 +128,19 @@ namespace fonts{
     }
     static inline void SetColor(const unsigned char *data, const glm::uvec2&size, const glm::uvec3&color, unsigned char *out, const glm::uvec2&outSize, uint32_t width_offset){
         const uint32_t channels = 4;
-        const uint64_t srcW = size.x;
-        const uint64_t srcH = size.y;
-        const uint64_t outW = outSize.x;
-        const uint64_t outH = outSize.y;
-
-        if (srcW == 0 || srcH == 0) return;
-
-        uint64_t srcTotal = srcW * srcH;
-        if (srcTotal > SIZE_MAX / channels) return;
-        size_t srcTotalBytes = static_cast<size_t>(srcTotal * channels);
-
-        if (width_offset >= srcW)return;
-
-        uint64_t effW = outW;
-        uint64_t effH = outH;
-        if (width_offset + effW > srcW) effW = srcW - width_offset;
-        if (effH > srcH) effH = srcH;
-
-        for (uint64_t y = 0; y < effH; ++y){
-            for (uint64_t x = 0; x < effW; ++x){
-                uint64_t col = x + width_offset;
-                size_t idx = static_cast<size_t>((y * srcW + col) * channels);
-                if (idx + 3 >= srcTotalBytes) continue;
+        const uint32_t imageSize = size.x * size.y * channels;
+        for (uint64_t y = 0; y < outSize.y; ++y){
+            for (uint64_t x = 0; x < outSize.x; ++x){
+                const uint64_t idx = ROW_COLUMN_TO_INDEX(y, x + width_offset, outSize.x) * channels;
+#ifdef DEBUG
+                if (idx + 3 >= imageSize){
+                    printf("idx + 3(%d) >= imageSize(%d)\n", idx + 3, imageSize);
+                }
+#endif
                 if (data[idx]){
-                    out[idx]     = static_cast<unsigned char>(color.r);
-                    out[idx + 1] = static_cast<unsigned char>(color.g);
-                    out[idx + 2] = static_cast<unsigned char>(color.b);
+                    out[idx] = color.r;
+                    out[idx + 1] = color.g;
+                    out[idx + 2] = color.b;
                     out[idx + 3] = 0xff;
                 }
             }

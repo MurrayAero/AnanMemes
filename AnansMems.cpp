@@ -194,7 +194,6 @@ bool AnansMemes::AddHand(){
         sprintf(imageName, "%s%sHand_Tsundere.png", currentPath.c_str(), IMAGE_PATH);
     }
     else{
-        //目前的程序来看, 只能是一般表情
         sprintf(imageName, "%s%sHand.png", currentPath.c_str(), IMAGE_PATH);
     }
     stbi_uc *data = stbi_load(imageName, &hand.size.x, &hand.size.y, &c, STBI_rgb_alpha);
@@ -207,11 +206,8 @@ bool AnansMemes::AddHand(){
     hand.data = new stbi_uc[handImageSize];
     memcpy(hand.data, data, handImageSize);
     stbi_image_free(data);
-
-    //之前是因为改图片的时候忘记保留alpha通道, 现在不需要了
-    // ananImage::removeInvalidPixel(hand.data, hand.size);
     
-    ananImage::copy(hand.data, anan.data, hand.size, hand.size, hand.size, glm::uvec2(0), glm::uvec2(0));
+    ananImage::copy(hand.data, anan.data, hand.size, hand.size, anan.size);
     return true;
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &extent){
@@ -256,7 +252,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
             stbi_uc * font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
             memset(font_data, 0, font_data_size);
             memset(new_data, 0, new_data_size);
-            ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset, glm::uvec2(0));
+            ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset);
             ananImage::rotate(font_data, cutSize, face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, new_data, new_size);
             // stbi_write_png("rotate_font.png", cutSize.x, cutSize.y, 4, font_data, 0);
             // stbi_write_png("rotate_new_font.png", new_size.x, new_size.y, 4, new_data, 0);
@@ -414,8 +410,9 @@ void AnansMemes::SetTextColor(const std::wstring&text){
     uint32_t currentFontInfo = 0, offset = fontInfo[0].offset.x;
 
     ananStr::split(text, split);
-    fontSize.x = MAX_FONT_WIDTH * text.length();
+    size.y = MAX_FONT_HEIGHT;
     fontSize.y = MAX_FONT_HEIGHT;
+    fontSize.x = MAX_FONT_WIDTH * text.length();
     for (auto&it:split){
         if(it[0] == L'['){
             color = COMMAND_COLOR;

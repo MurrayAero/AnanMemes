@@ -10,7 +10,6 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
     }
     if(parameter->text == L"" && parameter->image == "" && parameter->face < (uint32_t)AnansFace::MiniHappy){
         parameter->text = L"你忘记添加文本了";
-        parameter->face = rand() % (uint32_t)AnansFace::MiniHappy;
     }
     parameter->text = ananStr::fixBrackets(parameter->text);
     if(parameter->face > (uint32_t)AnansFace::MiniBase){
@@ -46,8 +45,8 @@ int main(int32_t argc, char *argv[]){
     // parameter.text = L"hello word";
 #endif
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(75, 550);
-        extent = glm::uvec2(650, 400); 
+        offset = glm::uvec2(80, 550);
+        extent = glm::uvec2(650, 350); 
     }
     else if(parameter.face < (uint32_t)AnansFace::Tsundere){
         offset = glm::uvec2(90, 430);

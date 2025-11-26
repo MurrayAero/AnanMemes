@@ -70,23 +70,24 @@ namespace cp{
         }
         int32_t wargc;
         wchar_t** wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
-        parameter->text = wargv[1];
+
         parameter->current_path = get_parameter_path(argv[0]);
         for (int32_t i = 0; i < argc; i++){
             if(argv[i] && argv[i][0] == '-'){
-                if(argv[i][1] == 'o'){
+                if(argv[i][1] == 'o' && argv[i + 1]){
                     parameter->out = argv[i + 1];
                 }
-                else if(argv[i][1] == 'f'){
-                    parameter->face = atoi(argv[i] + 2);
+                else if(argv[i][1] == 't' && argv[i + 1]){
+                    parameter->text = wargv[i + 1];
                 }
-                else if(argv[i][1] == 'i'){
+                else if(argv[i][1] == 'f' && argv[i + 1]){
+                    parameter->face = atoi(argv[i + 1]);
                 }
-            }
-            else{
-                const char *png = strstr(argv[i], ".png"), *jpg = strstr(argv[i], ".jpg");
-                if(png || jpg){
-                    parameter->out = argv[i];
+                else if(argv[i][1] == 'i' && argv[i + 1]){
+                const char *png = strstr(argv[i + 1], ".png"), *jpg = strstr(argv[i + 1], ".jpg");
+                    if(png || jpg){
+                        parameter->image = argv[i + 1];
+                    }
                 }
             }
         }

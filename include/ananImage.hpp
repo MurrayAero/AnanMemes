@@ -5,7 +5,9 @@
 #ifndef MAX_BYTE
 #define MAX_BYTE 0xff
 #endif
+#ifndef ROW_COLUMN_TO_INDEX
 #define ROW_COLUMN_TO_INDEX(ROW_INDEX, COLUMN_INDEX, COLUMN)((ROW_INDEX) * (COLUMN) + (COLUMN_INDEX))
+#endif
 namespace ananImage{
     // static inline void copy(const void *source, void *destination, uint32_t row, uint32_t column, const glm::uvec2&cutSzie, uint32_t srcWidth){
     //     //图片必须是一个像素4个字节或者rgba
@@ -108,36 +110,17 @@ namespace ananImage{
             // data[dstIndex + 3] = MAX_BYTE;
         }
     }
-    static inline void copy(const unsigned char *source, unsigned char *destination, const glm::uvec2&cutSize, const glm::uvec2& srcSize, const glm::uvec2& dstSize, const glm::uvec2& srcOffset, const glm::uvec2& destOffset) {
-        const uint64_t channels = 4ull;
-        if (srcSize.x == 0 || srcSize.y == 0 || dstSize.x == 0 || dstSize.y == 0) return;
-        if (srcOffset.x >= srcSize.x || srcOffset.y >= srcSize.y) return;
-        if (destOffset.x >= dstSize.x || destOffset.y >= dstSize.y) return;
-
-        uint64_t srcTotalPixels = (uint64_t)srcSize.x * (uint64_t)srcSize.y;
-        uint64_t dstTotalPixels = (uint64_t)dstSize.x * (uint64_t)dstSize.y;
-
-        if (srcTotalPixels > SIZE_MAX / channels || dstTotalPixels > SIZE_MAX / channels) return;
-
-        size_t srcTotalBytes = static_cast<size_t>(srcTotalPixels * channels);
-        size_t dstTotalBytes = static_cast<size_t>(dstTotalPixels * channels);
-
-        uint32_t effW = cutSize.x;
-        uint32_t effH = cutSize.y;
-        if (srcOffset.x + effW > srcSize.x) effW = srcSize.x - srcOffset.x;
-        if (srcOffset.y + effH > srcSize.y) effH = srcSize.y - srcOffset.y;
-        if (destOffset.x + effW > dstSize.x) effW = dstSize.x - destOffset.x;
-        if (destOffset.y + effH > dstSize.y) effH = dstSize.y - destOffset.y;
-
-        if (effW == 0 || effH == 0) return;
-
-        for (uint32_t y = 0; y < effH; ++y) {
-            for (uint32_t x = 0; x < effW; ++x) {
+    static inline void copy(const unsigned char *source, unsigned char *destination, const glm::uvec2&cutSize, const glm::uvec2& srcSize, const glm::uvec2& dstSize, const glm::uvec2& srcOffset = glm::uvec2(0), const glm::uvec2& destOffset = glm::uvec2(0)) {
+        const uint32_t channels = 4;
+        const uint32_t srcImageSIze = srcSize.x * srcSize.y * channels, dstImageSize = dstSize.x * dstSize.y * channels;
+        for (uint32_t y = 0; y < cutSize.y; ++y) {
+            for (uint32_t x = 0; x < cutSize.x; ++x) {
                 size_t srcIndex = ROW_COLUMN_TO_INDEX((uint32_t)(y + srcOffset.y), (uint32_t)(x + srcOffset.x), srcSize.x) * channels;
                 size_t dstIndex = ROW_COLUMN_TO_INDEX((uint32_t)(destOffset.y + y), (uint32_t)(destOffset.x + x), dstSize.x) * channels;
-                
-                if (srcIndex + 3 >= srcTotalBytes || dstIndex + 3 >= dstTotalBytes)continue;
-
+                if (srcIndex + 3 >= srcImageSIze || dstIndex + 3 >= dstImageSize){
+                    printf("in function %s:srcIndex(%d) + 3 >= srcImageSIze(%d) || dstIndex(%d) + 3 >= dstImageSize(%d)\n", __FUNCTION__, srcIndex, srcImageSIze, dstIndex, dstImageSize);
+                    break;
+                }
                 if (source[srcIndex + 3]) {
                     destination[dstIndex]     = source[srcIndex];
                     destination[dstIndex + 1] = source[srcIndex + 1];
