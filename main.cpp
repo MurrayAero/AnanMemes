@@ -27,7 +27,9 @@ int main(int32_t argc, char *argv[]){
 #else
     srandom(time(nullptr));
 #endif // _WIN32
-    prepare_command_parameter(argc, argv, &parameter);
+    if(!prepare_command_parameter(argc, argv, &parameter)){
+        return -1;
+    }
 #endif
     AnansMemes anan(parameter.current_path);
     //TOFO:写一个自动获取记笔记偏移和大小的功能
@@ -70,5 +72,11 @@ int main(int32_t argc, char *argv[]){
     if(parameter.face < (uint32_t)AnansFace::MiniHappy){
         anan.AddHand();
     }
-    anan.SaveImage(parameter.out);
+    int32_t result = anan.SaveImage(parameter.out);
+    if(result){
+        printf("success to save image.\n");
+    }
+    else{
+        printf("failed to save image. error code is %d\n", result);
+    }
 }

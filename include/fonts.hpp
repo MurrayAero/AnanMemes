@@ -128,10 +128,12 @@ namespace fonts{
     }
     static inline void SetColor(const unsigned char *data, const glm::uvec2&size, const glm::uvec3&color, unsigned char *out, const glm::uvec2&outSize, uint32_t width_offset){
         const uint32_t channels = 4;
+#ifdef DEBUG
         const uint32_t imageSize = size.x * size.y * channels;
+#endif
         for (uint64_t y = 0; y < outSize.y; ++y){
             for (uint64_t x = 0; x < outSize.x; ++x){
-                const uint64_t idx = ROW_COLUMN_TO_INDEX(y, x + width_offset, outSize.x) * channels;
+                const uint64_t idx = ROW_COLUMN_TO_INDEX(y, x + width_offset, size.x) * channels;
 #ifdef DEBUG
                 if (idx + 3 >= imageSize){
                     printf("idx + 3(%d) >= imageSize(%d)\n", idx + 3, imageSize);

@@ -113,14 +113,19 @@ namespace ananImage{
     static inline void copy(const unsigned char *source, unsigned char *destination, const glm::uvec2&cutSize, const glm::uvec2& srcSize, const glm::uvec2& dstSize, const glm::uvec2& srcOffset = glm::uvec2(0), const glm::uvec2& destOffset = glm::uvec2(0)) {
         const uint32_t channels = 4;
         const uint32_t srcImageSIze = srcSize.x * srcSize.y * channels, dstImageSize = dstSize.x * dstSize.y * channels;
+        if (srcOffset.x + cutSize.x > srcSize.x || srcOffset.y + cutSize.y > srcSize.y ||
+            destOffset.x + cutSize.x > dstSize.x || destOffset.y + cutSize.y > dstSize.y) {
+            printf("Error in %s: Copy region out of bounds.\n", __FUNCTION__);
+            return;
+        }
         for (uint32_t y = 0; y < cutSize.y; ++y) {
             for (uint32_t x = 0; x < cutSize.x; ++x) {
-                size_t srcIndex = ROW_COLUMN_TO_INDEX((uint32_t)(y + srcOffset.y), (uint32_t)(x + srcOffset.x), srcSize.x) * channels;
-                size_t dstIndex = ROW_COLUMN_TO_INDEX((uint32_t)(destOffset.y + y), (uint32_t)(destOffset.x + x), dstSize.x) * channels;
-                if (srcIndex + 3 >= srcImageSIze || dstIndex + 3 >= dstImageSize){
-                    printf("in function %s:srcIndex(%d) + 3 >= srcImageSIze(%d) || dstIndex(%d) + 3 >= dstImageSize(%d)\n", __FUNCTION__, srcIndex, srcImageSIze, dstIndex, dstImageSize);
-                    break;
-                }
+                const uint32_t srcIndex = ROW_COLUMN_TO_INDEX(y + srcOffset.y, x + srcOffset.x, srcSize.x) * channels;
+                const uint32_t dstIndex = ROW_COLUMN_TO_INDEX(destOffset.y + y, destOffset.x + x, dstSize.x) * channels;
+                // if (srcIndex + 3 >= srcImageSIze || dstIndex + 3 >= dstImageSize){
+                //     printf("in function %s:srcIndex(%d) + 3 >= srcImageSIze(%d) || dstIndex(%d) + 3 >= dstImageSize(%d)\n", __FUNCTION__, srcIndex, srcImageSIze, dstIndex, dstImageSize);
+                //     break;
+                // }
                 if (source[srcIndex + 3]) {
                     destination[dstIndex]     = source[srcIndex];
                     destination[dstIndex + 1] = source[srcIndex + 1];
