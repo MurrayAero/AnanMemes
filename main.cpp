@@ -41,13 +41,12 @@ int main(int32_t argc, char *argv[]){
     // anan.AddText(L"给吾辈[闭嘴]", offset, extent);
     // anan.AddText(L"吾辈 劝你归顺[中国]", offset, extent);
     // anan.AddText(L"吾辈 劝你归顺[中华人民 共和国]", offset, extent);
-    // parameter.text = L"比较好看的夏目安安";
-    parameter.text = L"让我们的新安安看新算法的效果";
+    parameter.text = L"比较好看的夏目安安";
     // parameter.image = "out.png";
     // parameter.text = L"hello word";
 #endif
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(80, 550);
+        offset = glm::uvec2(90, 550);
         extent = glm::uvec2(650, 350); 
     }
     else if(parameter.face < (uint32_t)AnansFace::Tsundere){
