@@ -35,22 +35,22 @@ int main(int32_t argc, char *argv[]){
     //TOFO:写一个自动获取记笔记偏移和大小的功能
     glm::uvec2 offset, extent;
 #ifdef DEBUG
-    parameter.face = (uint32_t)AnansFace::Tsundere;
+    // parameter.face = (uint32_t)AnansFace::Tsundere;
     // anan.AddText(L"给吾辈[点赞投币]", offset, extent);
     // anan.AddText(L"AB[CD]EFG[HIJK]", offset, extent);
-    // anan.AddText(L"给吾辈[闭嘴]", offset, extent);
-    // anan.AddText(L"吾辈 劝你归顺[中国]", offset, extent);
+    // parameter.text =L"给吾辈[闭嘴]吧";
+    parameter.text = L"吾辈 [劝你]归 顺[中国]吧";
     // anan.AddText(L"吾辈 劝你归顺[中华人民 共和国]", offset, extent);
-    parameter.text = L"比较好看的夏目安安";
+    // parameter.text = L"比较好看的夏目安安";
     // parameter.image = "out.png";
     // parameter.text = L"hello word";
 #endif
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(90, 550);
+        offset = glm::uvec2(95, 550);
         extent = glm::uvec2(650, 350); 
     }
     else if(parameter.face < (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(90, 430);
+        offset = glm::uvec2(80, 430);
         extent = glm::uvec2(335, 205);
     }
     else if(parameter.face == (uint32_t)AnansFace::MiniBase){

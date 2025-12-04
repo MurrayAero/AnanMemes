@@ -249,7 +249,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         if(face >= AnansFace::Tsundere){
             glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, cutSize);
             const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
-            stbi_uc * font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
+            stbi_uc *font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
             memset(font_data, 0, font_data_size);
             memset(new_data, 0, new_data_size);
             ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset);
@@ -272,12 +272,11 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         //这个宽度和高度主要用于判断是否重叠，因此需要更准确的数据
         pos.size = glm::uvec2(currentFontWidth, fontInfo[index].size.y);
         mMediaLayout.push_back(pos);
-
-        currentFontIndex += it.length();
-
-        if(index != split.size() - 1 && ananStr::GetFirstPunctuationPos(text) != std::string::npos && split[index + 1][0] != '['){
-            ++currentFontIndex;
+        
+        if(index < split.size() - 1){
+            currentFontIndex = text.find(split[index + 1], currentFontIndex);
         }
+
         ++index;
         if(currentFontIndex < fontInfo.size())fontImageOffset.x = fontInfo[currentFontIndex].offset.x;
     }
