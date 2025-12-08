@@ -32,14 +32,16 @@ int main(int32_t argc, char *argv[]){
     }
 #endif
     AnansMemes anan(parameter.current_path);
-    //TOFO:写一个自动获取记笔记偏移和大小的功能
+    //TODO:写一个自动获取记笔记偏移和大小的功能
     glm::uvec2 offset, extent;
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // anan.AddText(L"给吾辈[点赞投币]", offset, extent);
     // anan.AddText(L"AB[CD]EFG[HIJK]", offset, extent);
+    parameter.text = L"补全功能[是,否[正常?";
+    parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈[闭嘴]吧";
-    parameter.text = L"吾辈 [劝你]归 顺[中国]吧";
+    // parameter.text = L"吾辈 [劝你]归 顺[中国]吧";
     // anan.AddText(L"吾辈 劝你归顺[中华人民 共和国]", offset, extent);
     // parameter.text = L"比较好看的夏目安安";
     // parameter.image = "out.png";

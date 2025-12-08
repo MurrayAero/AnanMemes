@@ -53,7 +53,7 @@ class AnansMemes{
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
 
-    std::vector<fonts::FontAttribute>mMediaLayout;
+    std::vector<fonts::FontAttribute>mLayout;
     
     std::vector<fonts::FontAttribute>fontInfo;
     // uint32_t GetInvalidPixelSize(const std::wstring&text);

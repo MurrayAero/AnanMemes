@@ -1,62 +1,25 @@
-#ifndef ANAN_STRING_HPP
-#define ANAN_STRING_HPP
-#include <stack>
-#include <string>
-#include <vector>
-#include <stdint.h>
-#include <cwctype>
-#include <algorithm>
-namespace ananStr{
-    static inline void removeSpaces(const std::wstring& text, std::wstring& out) {
+#include "ananString.hpp"
+    void ananStr::removeSpaces(const std::wstring& text, std::wstring& out) {
         out = text;
         out.erase(std::remove(out.begin(), out.end(), L' '), out.end());
     }
-    static inline std::wstring fixBrackets(const std::wstring& input) {
+    std::wstring ananStr::fixBrackets(const std::wstring& input) {
+        std::size_t pos = 0;
         std::wstring result = input;
-        std::stack<size_t> bracketStack;
-        for (size_t i = 0; i < result.length(); ++i) {
-            if (result[i] == L'[') {
-                bracketStack.push(i);
-            } else if (result[i] == L']') {
-                if (!bracketStack.empty()) {
-                    bracketStack.pop();
-                }
-            }
-        }
-        std::vector<size_t> unpairedPositions;
-        while (!bracketStack.empty()) {
-            unpairedPositions.push_back(bracketStack.top());
-            bracketStack.pop();
-        }
-        std::reverse(unpairedPositions.begin(), unpairedPositions.end());
-        
-        if (unpairedPositions.empty()) {
-            return result;
-        }
-
-        for (auto it = unpairedPositions.rbegin(); it != unpairedPositions.rend(); ++it) {
-            size_t startPos = *it;
-            size_t insertPos = std::wstring::npos;
-            
-            for (size_t i = startPos + 1; i < result.length(); ++i) {
-                wchar_t c = result[i];
-                if (std::iswpunct(c) && c != L']') {
-                    insertPos = i;
-                    break;
-                }
-            }
-            
-            if (insertPos != std::wstring::npos) {
-                result.insert(insertPos, L"]");
+        while(pos < result.length()){
+            pos = result.find('[', pos);
+            if(pos == std::wstring::npos)break;
+            std::size_t symbol = GetFirstPunctuationPos(result.c_str() + pos + 1);
+            if (symbol + pos + 1 != std::wstring::npos) {
+                result.insert(symbol + pos + 1, L"]");
             } else {
                 result.append(L"]");
             }
+            pos += symbol + 1;
         }
-        
         return result;
     }
-    //该函数将空格视为标点符号
-    static inline size_t GetFirstPunctuationPos(const std::wstring& text) {
+    size_t ananStr::GetFirstPunctuationPos(const std::wstring& text) {
         for (size_t i = 0; i < text.length(); ++i) {
             if (std::iswpunct(text[i]) || text[i] == L' ') {
                 return i;
@@ -65,7 +28,7 @@ namespace ananStr{
         return std::wstring::npos;
     }
 
-    static inline std::vector<std::wstring> splitByDelimiters(const std::wstring& text) {
+    std::vector<std::wstring> ananStr::splitByDelimiters(const std::wstring& text) {
         std::vector<std::wstring> result;
         std::wstring current_segment;
         
@@ -86,7 +49,7 @@ namespace ananStr{
         
         return result;
     }
-    static inline std::vector<std::wstring> splitEvenly(const std::wstring& text, uint32_t count) {
+    std::vector<std::wstring> ananStr::splitEvenly(const std::wstring& text, uint32_t count) {
         std::vector<std::wstring> result;
         
         if (text.empty() || count == 0) {
@@ -126,7 +89,7 @@ namespace ananStr{
         
         return result;
     }
-    static inline size_t split(const std::wstring&text, wchar_t chr, std::vector<std::wstring>&out, size_t pos){
+    size_t ananStr::split(const std::wstring&text, wchar_t chr, std::vector<std::wstring>&out, size_t pos){
         const uint32_t len = text.length();
         size_t openBracket = text.find(chr, pos);
         if (openBracket == std::wstring::npos) {
@@ -140,7 +103,7 @@ namespace ananStr{
         }
         return openBracket;
     }
-    static inline void split(const std::wstring& text, std::vector<std::wstring>& out) {
+    void ananStr::split(const std::wstring& text, std::vector<std::wstring>& out) {
         size_t pos = 0;
         while (pos < text.length()) {
             size_t closeBracket = split(text, ']', out, split(text, '[', out, pos));
@@ -148,7 +111,7 @@ namespace ananStr{
             pos = closeBracket + 1;
         }
     }
-    static inline std::vector<std::wstring> split(const std::wstring& text, uint32_t count) {
+    std::vector<std::wstring> ananStr::split(const std::wstring& text, uint32_t count) {
         auto pos = GetFirstPunctuationPos(text);
         if (pos == std::wstring::npos) {
             return splitEvenly(text, count);
@@ -175,5 +138,3 @@ namespace ananStr{
         if(result.empty())result.push_back(text);
         return result;
     }
-};
-#endif

@@ -239,7 +239,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
             fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
             fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
             ++randCount;
-        }while((!inExtent(fontOffset, currentFontSize, offset, extent)  || isOverlapping(fontOffset, currentFontSize, mMediaLayout)) && randCount < MAX_RANDOM_COUNT);
+        }while((!inExtent(fontOffset, currentFontSize, offset, extent)  || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
         if(randCount >= MAX_RANDOM_COUNT){
             wprintf(L"randCount >= MAX_RANDOM_COUNT(%d), ignore current and all subsequent strings\n", MAX_RANDOM_COUNT);
             break;
@@ -271,7 +271,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         pos.offset = fontOffset;
         //这个宽度和高度主要用于判断是否重叠，因此需要更准确的数据
         pos.size = glm::uvec2(currentFontWidth, fontInfo[index].size.y);
-        mMediaLayout.push_back(pos);
+        mLayout.push_back(pos);
         
         if(index < split.size() - 1){
             currentFontIndex = text.find(split[index + 1], currentFontIndex);
@@ -346,7 +346,6 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
 // }
 
 bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, const glm::uvec2&extent){
-    //给新安安添加的图片也需要旋转
     if(doodle.data){
         delete[]doodle.data;
         doodle.data = nullptr;
@@ -354,7 +353,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     int32_t width, height, c;
     stbi_uc *data = stbi_load(image.c_str(), &width, &height, &c, STBI_rgb_alpha);
     if(!data){
-        printf("load image error, image name %s\n", image.c_str());
+        printf("load image error, image:%s\n", image.c_str());
         return false;
     }
     glm::uvec2 imageSize, imageOffset;
@@ -378,12 +377,12 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     }
 
     const glm::uvec2 max = glm::uvec2(extent.x > MAX_FONT_WIDTH ? extent.x - MAX_FONT_WIDTH : 0, extent.y > MAX_FONT_HEIGHT ? extent.y - MAX_FONT_HEIGHT : 0);
-    do{       
+    do{
         imageOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while(!inExtent(imageOffset, imageSize, offset, extent)  || isOverlapping(imageOffset, imageSize, mMediaLayout));
+    }while(!inExtent(imageOffset, imageSize, offset, extent)  || isOverlapping(imageOffset, imageSize, mLayout));
 
-    mMediaLayout.push_back({imageSize, imageOffset});
+    mLayout.push_back({imageSize, imageOffset});
 
     ananImage::copy(doodle.data, anan.data, doodle.size, doodle.size, anan.size, glm::uvec2(0), imageOffset);
 

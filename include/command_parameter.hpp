@@ -164,8 +164,8 @@ namespace cp{
     }
 #endif
     static inline void help(int32_t argc, char *argv[]){
-        printf("usage:[-t text] [-i image] [-f face] [-o out image]\n");
-        printf("example:-t \"input text\" -i input.png -f 6 -o out.png\n");
+        printf("usage:[-t text] [-i image] [-f face] [-o output image]\n");
+        printf("example:-t\"input text\" -i input.png -f6 -o out.png\n");
         printf("option:\n");
         printf("\t-t\ttext on anan's notepad.\n");
         printf("\t-i\timage on anan's notepad.\n");
