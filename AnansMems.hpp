@@ -28,8 +28,8 @@
 // #define IS_ODD(NUM) ((NUM) % 2)
 // #define IS_EVEN(NUM) (!IS_ODD(NUM))
 
-#define MAX_FONT_WIDTH 50u
-#define MAX_FONT_HEIGHT MAX_FONT_WIDTH
+// #define MAX_FONT_WIDTH 50u
+// #define MAX_FONT_HEIGHT MAX_FONT_WIDTH
 enum class AnansFace{
     Happy = 0,
     Base,
@@ -51,6 +51,7 @@ class AnansMemes{
     AnansFace face;
     std::string currentPath;
     stbi_uc *mFontData = nullptr;
+    glm::uvec2 mFontSize, imageSize;
     AnanImage anan = {}, doodle = {}, hand = {};
 
     std::vector<fonts::FontAttribute>mLayout;

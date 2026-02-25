@@ -4,7 +4,7 @@
 #include "AnansMems.hpp"
 #include "command_parameter.hpp"
 bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter *parameter){
-    if(!cp::GetCommandParameter(argc, argv, parameter)){
+    if(!cp::GetArgument(argc, argv, parameter)){
         cp::help(argc, argv);
         return false;
     }
@@ -53,7 +53,7 @@ int main(int32_t argc, char *argv[]){
     }
     else if(parameter.face < (uint32_t)AnansFace::Tsundere){
         offset = glm::uvec2(80, 430);
-        extent = glm::uvec2(335, 205);
+        extent = glm::uvec2(333, 203);
     }
     else if(parameter.face == (uint32_t)AnansFace::MiniBase){
         offset = glm::uvec2(80, 135);

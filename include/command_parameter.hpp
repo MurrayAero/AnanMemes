@@ -186,7 +186,7 @@ namespace cp{
         printf("\tuse -t, -i, or both.\n");
         printf("\tenglish delimiters only.\n");
     }
-    static inline bool GetCommandParameter(int32_t argc, char *argv[], CommandParameter *parameter){
+    static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
 //         wchar_t** wargv = CommandLineToArgvW(GetCommandLineW(), &wargc);
         if(argc < 2){
