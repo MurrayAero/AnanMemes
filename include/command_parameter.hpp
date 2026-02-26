@@ -28,6 +28,7 @@ namespace cp{
         std::string image = "";
         std::string out = "out.png";
         std::string current_path = "";
+        std::string fontFile = FONT_PATH"SourceHanSerifCN-Bold.otf";
     };
 #ifdef _WIN32
     int32_t find_short_option(char c, const char* optstring) {
@@ -169,7 +170,7 @@ namespace cp{
         printf("option:\n");
         printf("\t-t\ttext on anan's notepad.\n");
         printf("\t-i\timage on anan's notepad.\n");
-        printf("\t-f\tanan's face\n");
+        printf("\t-f\tanan's face or specify font file\n");
         printf("\t-o\tanan's\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
@@ -195,6 +196,9 @@ namespace cp{
         //getopt_long长选项--
         int32_t opt;
         parameter->current_path = get_parameter_path(argv[0]);
+        if(parameter->current_path[0] == '~'){
+            parameter->current_path = getenv("HOME") + parameter->current_path.substr(1);
+        }
         while ((opt = getopt(argc, argv, "t:i:f:o:")) != -1){
             if(opt == 't'){
                 parameter->text = utf8_to_wstring(optarg);
@@ -203,7 +207,13 @@ namespace cp{
                 parameter->image = optarg;
             }
             else if(opt == 'f'){
-                parameter->face = atoi(optarg);
+                const uint32_t faceIndex = atoi(optarg);
+                if(strlen(optarg) > 5){
+                    parameter->fontFile = optarg;
+                }
+                else{
+                    parameter->face = faceIndex;
+                }
             }
             else if(opt == 'o'){
                 const char *png = strstr(optarg, ".png"), *jpg = strstr(optarg, ".jpg");

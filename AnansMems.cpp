@@ -196,21 +196,11 @@ AnansMemes::AnansMemes(/* args */){
 }
 
 AnansMemes::AnansMemes(const std::string &path){
-    if(path[0] == '~'){
-        currentPath = getenv("HOME") + path.substr(1);
-    }
-    else{
-        currentPath = path;
-    }
+    currentPath = path;
 }
 
 AnansMemes::AnansMemes(const std::string&path, AnansFace face){
-    if(path[0] == '~'){
-        currentPath = getenv("HOME") + path;
-    }
-    else{
-        currentPath = path;
-    }
+    currentPath = path;
     if(!GetAnanImageData(path, face)){
         throw "load image error";
     }
@@ -264,7 +254,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         newExtent.x -= imageSize.x;
     }
     mFontSize = calculateFontSize(newExtent, text);
-    if(!GetFontData(currentPath + FONT_PATH + "ukai.ttc", text)){
+    if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
 

@@ -49,6 +49,7 @@ struct AnanImage{
 };
 class AnansMemes{
     AnansFace face;
+    std::string fontFile;
     std::string currentPath;
     stbi_uc *mFontData = nullptr;
     glm::uvec2 mFontSize, imageSize;
@@ -80,5 +81,9 @@ public:
     int32_t SaveImage(const std::string &image);
 
     bool SetFace(AnansFace face);
+
+    inline void SetFontFile(const std::string&fontFile){
+        this->fontFile = fontFile;
+    }
 };
 #endif

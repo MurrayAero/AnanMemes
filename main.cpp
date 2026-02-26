@@ -63,6 +63,7 @@ int main(int32_t argc, char *argv[]){
         offset = glm::uvec2(183, 495);
         extent = glm::uvec2(235, 110);
     }
+    anan.SetFontFile(parameter.fontFile);
     anan.SetFace((AnansFace)parameter.face);
     if(parameter.image != "" && parameter.face < (uint32_t)AnansFace::MiniHappy){
         anan.AddImage(parameter.image, offset, extent);
