@@ -8,13 +8,13 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
         cp::help(argc, argv);
         return false;
     }
-    if(parameter->text == L"" && parameter->image == "" && parameter->face < (uint32_t)AnansFace::MiniHappy){
+    if(parameter->text == L"" && parameter->image == "" && parameter->face < (uint32_t)AnansFace::Nervous){
         parameter->text = L"你忘记添加文本了";
     }
     parameter->text = ananStr::fixBrackets(parameter->text);
-    if(parameter->face > (uint32_t)AnansFace::MiniBase){
-        printf("invalid face index(%d), max face index is %d. used random face\n", parameter->face, AnansFace::MiniBase);
-        parameter->face = rand() % ((uint32_t)AnansFace::MiniBase + 1);
+    if(parameter->face > (uint32_t)AnansFace::Nervous){
+        printf("invalid face index(%d), max face index is %d. used random face\n", parameter->face, AnansFace::Nervous);
+        parameter->face = rand() % ((uint32_t)AnansFace::Nervous + 1);
     }
     return true;
 }
@@ -37,9 +37,10 @@ int main(int32_t argc, char *argv[]){
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // anan.AddText(L"给吾辈[点赞投币]", offset, extent);
-    // anan.AddText(L"AB[CD]EFG[HIJK]", offset, extent);
-    parameter.text = L"补全功能[是,否[正常?";
-    parameter.text = ananStr::fixBrackets(parameter.text);
+    parameter.text = L"你好啊";
+    // parameter.face = (uint32_t)AnansFace::MiniBase;
+    // parameter.text = L"补全功能[是,否[正常?";
+    // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈[闭嘴]吧";
     // parameter.text = L"吾辈 [劝你]归 顺[中国]吧";
     // anan.AddText(L"吾辈 劝你归顺[中华人民 共和国]", offset, extent);
@@ -55,25 +56,26 @@ int main(int32_t argc, char *argv[]){
         offset = glm::uvec2(80, 430);
         extent = glm::uvec2(333, 203);
     }
-    else if(parameter.face == (uint32_t)AnansFace::MiniBase){
-        offset = glm::uvec2(80, 135);
-        extent = glm::uvec2(150, 90);
+    else if(parameter.face == (uint32_t)AnansFace::Nervous){
+        offset = glm::uvec2(100, 500);
+        extent = glm::uvec2(570, 320);
     }
     else{
         offset = glm::uvec2(183, 495);
-        extent = glm::uvec2(235, 110);
+        extent = glm::uvec2(230, 110);
     }
     anan.SetFontFile(parameter.fontFile);
     anan.SetFace((AnansFace)parameter.face);
-    if(parameter.image != "" && parameter.face < (uint32_t)AnansFace::MiniHappy){
+    if(parameter.image != ""){
         anan.AddImage(parameter.image, offset, extent);
     }
     if(parameter.text != L""){
         anan.AddText(parameter.text, offset, extent);
     }
-    if(parameter.face < (uint32_t)AnansFace::MiniHappy){
-        anan.AddHand();
-    }
+    anan.AddHand();
+
+    if(parameter.angle)anan.Rotate(90);
+
     int32_t result = anan.SaveImage(parameter.out);
     if(result){
         printf("success to save image.\n");

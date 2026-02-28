@@ -23,6 +23,7 @@ extern int32_t optopt;
 #endif
 namespace cp{
     struct CommandParameter{
+        float angle = 0;
         std::wstring text;
         uint32_t face = 0;
         std::string image = "";
@@ -168,9 +169,10 @@ namespace cp{
         printf("usage:[-t text] [-i image] [-f face] [-o output image]\n");
         printf("example:-t\"input text\" -i input.png -f6 -o out.png\n");
         printf("option:\n");
-        printf("\t-t\ttext on anan's notepad.\n");
-        printf("\t-i\timage on anan's notepad.\n");
-        printf("\t-f\tanan's face or specify font file\n");
+        printf("\t-r<angle>\tangle;rotate anan's.\n");
+        printf("\t-t<text>\ttext on anan's notepad.\n");
+        printf("\t-i<image>\timage on anan's notepad.\n");
+        printf("\t-f<face>\tanan's face or specify font file\n");
         printf("\t-o\tanan's\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
@@ -180,12 +182,11 @@ namespace cp{
         printf("\t4 = angry\n");
         printf("\t5 = speechless\n");
         printf("\t6 = tsundere\n");
-        printf("\t7 = happy_mini\n");
-        printf("\t8 = tsundere_mini\n");
-        printf("\t9 = normal_mini\n");
+        printf("\t7 = Nervous\n");
         printf("explain:\n");
         printf("\tuse -t, -i, or both.\n");
         printf("\tenglish delimiters only.\n");
+        printf("\tusage -f specify font file.\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
@@ -202,6 +203,9 @@ namespace cp{
         while ((opt = getopt(argc, argv, "t:i:f:o:")) != -1){
             if(opt == 't'){
                 parameter->text = utf8_to_wstring(optarg);
+            }
+            else if(opt == 'r'){
+                parameter->angle = atoi(optarg);
             }
             else if(opt == 'i'){
                 parameter->image = optarg;

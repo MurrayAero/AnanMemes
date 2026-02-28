@@ -65,52 +65,37 @@ bool isOverlapping(const glm::uvec2& pos, const glm::uvec2& size, const std::vec
 bool inExtent(const glm::uvec2& pos, const glm::uvec2& size, const glm::uvec2& offset, const glm::uvec2& extent) {
     return pos.x >= offset.x && pos.y >= offset.y && pos.x + size.x <= offset.x + extent.x && pos.y + size.y <= offset.y + extent.y;
 }
-std::vector<size_t> splitTextUsingExternal(const std::wstring& text) {
+float calculateFontSize(const glm::uvec2& extent, const std::wstring& text) {
+    if (extent.x == 0 || extent.y == 0 || text.empty()) {
+        return 0;
+    }
     std::vector<size_t> lineLengths;
-    std::wstring remaining = text;
+    size_t currentLineLength = 0;
     
-    while (!remaining.empty()) {
-        size_t pos = ananStr::GetFirstPunctuationPos(remaining);
-        
-        if (pos == std::wstring::npos) {
-            lineLengths.push_back(remaining.length());
-            break;
+    for (wchar_t ch : text) {
+        if (ananStr::IsLineBreak(ch)) {
+            lineLengths.push_back(currentLineLength);
+            currentLineLength = 0;
         } else {
-            // 从开始到标点位置前的字符是当前行
-            lineLengths.push_back(pos);
-            if (pos + 1 < remaining.length()) {
-                remaining = remaining.substr(pos + 1);
-            } else {
-                // 标点后没有字符了
-                break;
-            }
+            ++currentLineLength;
         }
     }
-    
-    return lineLengths;
-}
-
-glm::uvec2 calculateFontSize(const glm::uvec2& extent, const std::wstring& text) {
-    if (extent.x == 0 || extent.y == 0 || text == L"") {
-        return glm::uvec2(0, 0);
-    }
-    
-    std::vector<size_t> lineLengths = splitTextUsingExternal(text);
-
+    lineLengths.push_back(currentLineLength);
     size_t maxCharCount = 0;
-    for (size_t length : lineLengths) {
-        maxCharCount = std::max(maxCharCount, length);
+    for (size_t len : lineLengths) {
+        maxCharCount = std::max(maxCharCount, len);
     }
+    
     if (maxCharCount == 0) {
-        return glm::uvec2(0, 0);
+        return 0;
     }
+    
     size_t lineCount = lineLengths.size();
     
-    unsigned int maxWidthPerChar = extent.x / static_cast<unsigned int>(maxCharCount);
-    unsigned int maxHeightPerChar = extent.y / static_cast<unsigned int>(lineCount);
-
-    unsigned int finalFontSize = std::min(maxWidthPerChar, maxHeightPerChar);    
-    return glm::uvec2(finalFontSize, finalFontSize);
+    float maxWidthPerChar = static_cast<float>(extent.x) / maxCharCount;
+    float maxHeightPerChar = static_cast<float>(extent.y) / lineCount;
+    
+    return std::min(maxWidthPerChar, maxHeightPerChar);
 }
 std::string AnansMemes::GetAnansImageName(AnansFace face){
     switch (face){
@@ -124,14 +109,10 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "Angry.png";
     case AnansFace::Speechless:
         return "Speechless.png";
-    case AnansFace::MiniHappy:
-        return "miniHappy.jpg";
-    case AnansFace::MiniTsundere:
-        return "miniTsundere.jpg";
-    case AnansFace::MiniBase:
-        return "miniBase.jpg";
     case AnansFace::Tsundere:
         return "Tsundere.png";
+    case AnansFace::Nervous:
+        return "Nervous.jpg";
     default:
         break;
     }
@@ -152,14 +133,14 @@ bool AnansMemes::GetFontData(const std::string&fontPath, const std::wstring &tex
         return false;
 	}
     const uint32_t fontCount = text.length();
-    const uint32_t fontSize = mFontSize.x * fontCount * mFontSize.y;
+    const uint32_t fontSize = mFontSize * fontCount * mFontSize;
     stbi_uc *fontData = new stbi_uc[fontSize];
     memset(fontData, 0, fontSize);
-    fontInfo = fonts::GenerateFont(fontBuffer, mFontSize.x * fontCount, text.data(), fontCount, fontData);
-    // stbi_write_bmp("fonttest.bmp", mFontSize.x * fontCount, mFontSize.y, 1, fontData);
+    fontInfo = fonts::GenerateFont(fontBuffer, mFontSize * fontCount, text.data(), fontCount, fontData);
+    // stbi_write_bmp("fonttest.bmp", mFontSize * fontCount, mFontSize, 1, fontData);
     fclose(fontFile);
     mFontData = new stbi_uc[fontSize * 4];
-    ananImage::convertFontToRGBA(fontData, glm::uvec2(mFontSize.x * text.length(), mFontSize.y), mFontData);
+    ananImage::convertFontToRGBA(fontData, glm::uvec2(mFontSize * text.length(), mFontSize), mFontData);
     delete[] fontData;
     if (fontBuffer) {
         free(fontBuffer);
@@ -230,6 +211,9 @@ bool AnansMemes::AddHand(){
     if(face == AnansFace::Tsundere){
         sprintf(imageName, "%s%sHand_Tsundere.png", currentPath.c_str(), IMAGE_PATH);
     }
+    else if(face == AnansFace::Nervous){
+        sprintf(imageName, "%s%sHand_Nervous.png", currentPath.c_str(), IMAGE_PATH);
+    }
     else{
         sprintf(imageName, "%s%sHand.png", currentPath.c_str(), IMAGE_PATH);
     }
@@ -251,7 +235,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     glm::uvec2 newExtent = extent;
     if(!mLayout.empty()){
         //通常表示已经加过图片了
-        newExtent.x -= imageSize.x;
+        newExtent.x -= mImageSize.x;
     }
     mFontSize = calculateFontSize(newExtent, text);
     if(!GetFontData(currentPath + fontFile, text)){
@@ -261,8 +245,8 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     SetTextColor(text);
 
     uint32_t index = 0, currentFontIndex = 0;
-    const uint32_t fontWidth = mFontSize.x * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize.x, extent);
-    glm::uvec2 fontImageOffset = {}, fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize.y), cutSize = glm::uvec2(mFontSize.y);
+    const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, extent);
+    glm::uvec2 fontImageOffset = {}, fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize), cutSize = glm::uvec2(mFontSize);
 
     auto split = ananStr::split(text, line);
 
@@ -274,7 +258,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
             sprintf(message, "currentFontWidth(%d) >= extent.x(%d)", currentFontWidth, extent.x);
             throw std::out_of_range(message);
         }
-        glm::uvec2 currentFontSize = glm::uvec2(currentFontWidth, mFontSize.y);
+        glm::uvec2 currentFontSize = glm::uvec2(currentFontWidth, mFontSize);
         const glm::uvec2 max = glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
         int32_t randCount = 0;
         //TODO:应该改进随机算法和下面的判断函数
@@ -290,13 +274,13 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         cutSize.x = currentFontWidth;
 
         if(face >= AnansFace::Tsundere){
-            glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, cutSize);
+            glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE, cutSize);
             const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
             stbi_uc *font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
             memset(font_data, 0, font_data_size);
             memset(new_data, 0, new_data_size);
             ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset);
-            ananImage::rotate(font_data, cutSize, face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:MINI_ANAN_ANGLE, new_data, new_size);
+            ananImage::rotate(font_data, cutSize, face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE, new_data, new_size);
             // stbi_write_png("rotate_font.png", cutSize.x, cutSize.y, 4, font_data, 0);
             // stbi_write_png("rotate_new_font.png", new_size.x, new_size.y, 4, new_data, 0);
 #ifdef DEBUG
@@ -334,7 +318,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
 //     // glm::uvec2 size = fonts.size;
 //     // size.x = mFontSize.x * text.length();
 //     // SetTextColor(mFontData, size, COMMAND_COLOR, fonts.data, glm::uvec2(mFontSize.x - 5, mFontSize.y), 0);
-//     const uint32_t imageSize = anan.size.x * anan.size.y * anan.channels;
+//     const uint32_t mImageSize = anan.size.x * anan.size.y * anan.channels;
 //     //尝试用智能指针
 //     //auto up = std::make_unique<Foo>(42);  
 //     //auto arr = std::make_unique<int[]>(10);返回的指针支持数组索引
@@ -400,38 +384,54 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         return false;
     }
     glm::uvec2 imageOffset;
-    // ananImage::calculateImageSize(extent, glm::uvec2(width, height), imageSize);
-    imageSize = ananImage::calculateImageSize(extent, glm::uvec2(width, height), mLayout.size() + 1);
+    // ananImage::calculateImageSize(extent, glm::uvec2(width, height), mImageSize);
+    mImageSize = ananImage::calculateImageSize(extent, glm::uvec2(width, height), mLayout.size() + 1);
     doodle.channels = 4;
-    doodle.size = imageSize;
-    const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
+    doodle.size = mImageSize;
+    const uint32_t uImageSize = mImageSize.x * mImageSize.y * doodle.channels;
     doodle.data = new stbi_uc[uImageSize];
 
-    if(imageSize != glm::uvec2(width, height)){
-        stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
+    if(mImageSize != glm::uvec2(width, height)){
+        stbir_resize(data, width, height, 0, doodle.data, mImageSize.x, mImageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
     }
 
     if(face == AnansFace::Tsundere){
-        imageSize = ananImage::calculateRotatedSize(TSUNDERE_ANAN_ANGLE, imageSize);
-        stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];
-        ananImage::rotate(doodle.data, doodle.size, TSUNDERE_ANAN_ANGLE, temp, imageSize);
+        mImageSize = ananImage::calculateRotatedSize(TSUNDERE_ANAN_ANGLE, mImageSize);
+        stbi_uc *temp = new stbi_uc[mImageSize.x * mImageSize.y * doodle.channels];
+        ananImage::rotate(doodle.data, doodle.size, TSUNDERE_ANAN_ANGLE, temp, mImageSize);
         delete[]doodle.data;
         doodle.data = temp;
-        doodle.size = imageSize;
+        doodle.size = mImageSize;
     }
 
-    const glm::uvec2 max = glm::uvec2(extent.x > mFontSize.x ? extent.x - mFontSize.x : 0, extent.y > mFontSize.y ? extent.y - mFontSize.y : 0);
+    const glm::uvec2 max = glm::uvec2(extent.x > mFontSize ? extent.x - mFontSize : 0, extent.y > mFontSize ? extent.y - mFontSize : 0);
     do{
         imageOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while(!inExtent(imageOffset, imageSize, offset, extent)  || isOverlapping(imageOffset, imageSize, mLayout));
+    }while(!inExtent(imageOffset, mImageSize, offset, extent)  || isOverlapping(imageOffset, mImageSize, mLayout));
 
-    mLayout.push_back({imageSize, imageOffset});
+    mLayout.push_back({mImageSize, imageOffset});
 
     ananImage::copy(doodle.data, anan.data, doodle.size, doodle.size, anan.size, glm::uvec2(0), imageOffset);
 
     stbi_image_free(data);
     return false;
+}
+
+void AnansMemes::Rotate(float angle){
+    const glm::ivec2 imageSize = ananImage::calculateRotatedSize(angle, anan.size);
+    const uint32_t uImageSize = imageSize.x * imageSize.y * anan.channels;
+    stbi_uc *temp = new stbi_uc[uImageSize];
+    ananImage::rotate(anan.data, anan.size, angle, temp, imageSize);
+    if(imageSize == anan.size){
+        memcpy(anan.data, temp, uImageSize);
+        delete[]temp;
+    }
+    else{
+        anan.size = imageSize;
+        delete[]anan.data;
+        anan.data = temp;
+    }
 }
 
 int32_t AnansMemes::SaveImage(const std::string &image){
@@ -452,9 +452,9 @@ void AnansMemes::SetTextColor(const std::wstring&text){
     uint32_t currentFontInfo = 0, offset = fontInfo[0].offset.x;
 
     ananStr::split(text, split);
-    size.y = mFontSize.y;
-    fontSize.y = mFontSize.y;
-    fontSize.x = mFontSize.x * text.length();
+    size.y = mFontSize;
+    fontSize.y = mFontSize;
+    fontSize.x = mFontSize * text.length();
     for (auto&it:split){
         if(it[0] == L'['){
             color = COMMAND_COLOR;

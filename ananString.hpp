@@ -18,5 +18,9 @@ namespace ananStr{
     size_t split(const std::wstring&text, wchar_t chr, std::vector<std::wstring>&out, size_t pos);
     void split(const std::wstring& text, std::vector<std::wstring>& out);
     std::vector<std::wstring> split(const std::wstring& text, uint32_t count);
+
+    inline bool IsLineBreak(char c){
+        return c == ',' || c == L' ';
+    }
 };
 #endif

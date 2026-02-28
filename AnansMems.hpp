@@ -20,16 +20,16 @@
 #endif
 #define MAX_RANDOM_COUNT 5000
 
-#define MINI_ANAN_ANGLE -20
-#define TSUNDERE_ANAN_ANGLE -15
+#define NERVOUS_ANAN_ANGLE -12
+#define TSUNDERE_ANAN_ANGLE -10
 
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 
 // #define IS_ODD(NUM) ((NUM) % 2)
 // #define IS_EVEN(NUM) (!IS_ODD(NUM))
 
-// #define MAX_FONT_WIDTH 50u
-// #define MAX_FONT_HEIGHT MAX_FONT_WIDTH
+// #define MIN_FONT_WIDTH 50u
+// #define MIN_FONT_HEIGHT MIN_FONT_WIDTH
 enum class AnansFace{
     Happy = 0,
     Base,
@@ -38,9 +38,7 @@ enum class AnansFace{
     Angry,
     Speechless,
     Tsundere,
-    MiniHappy,
-    MiniTsundere,
-    MiniBase
+    Nervous
 };
 struct AnanImage{
     stbi_uc *data;
@@ -49,10 +47,11 @@ struct AnanImage{
 };
 class AnansMemes{
     AnansFace face;
+    float mFontSize;
     std::string fontFile;
     std::string currentPath;
+    glm::uvec2 mImageSize;
     stbi_uc *mFontData = nullptr;
-    glm::uvec2 mFontSize, imageSize;
     AnanImage anan = {}, doodle = {}, hand = {};
 
     std::vector<fonts::FontAttribute>mLayout;
@@ -77,6 +76,8 @@ public:
     //offset是白板的左上角, extent是白板的大小
     bool AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&extent);
     bool AddImage(const std::string&image, const glm::uvec2&offset, const glm::uvec2&extent);
+
+    void Rotate(float angle);
     
     int32_t SaveImage(const std::string &image);
 
