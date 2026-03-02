@@ -97,6 +97,96 @@ float calculateFontSize(const glm::uvec2& extent, const std::wstring& text) {
     
     return std::min(maxWidthPerChar, maxHeightPerChar);
 }
+std::vector<glm::uvec2> layoutTexts(const glm::uvec2& offset, const glm::uvec2& extent, const std::vector<glm::uvec2>& textSize) {
+    std::vector<glm::uvec2> positions;
+    positions.reserve(textSize.size());
+    
+    if (textSize.empty()) {
+        return positions;
+    }
+    glm::uvec2 totalSize = glm::uvec2(0), maxSize = glm::uvec2(0);
+    for (const auto& size : textSize) {
+        totalSize.x += size.x;
+        maxSize.y = std::max(maxSize.y, size.y);
+        maxSize.x = std::max(maxSize.x, size.x);
+        totalSize.y += size.y;
+    }
+    // 如果总宽度适合extent，使用水平居中
+    // 否则使用垂直堆叠居中
+    const uint32_t spacing = 1;
+    
+    if (totalSize.x + (textSize.size() - 1) * spacing <= extent.x && 
+        maxSize.y <= extent.y) {
+        //水平排列
+        glm::uvec2 current = glm::uvec2(offset.x + (extent.x - totalSize.x - (textSize.size() - 1) * spacing) / 2, offset.y + extent.y / 2);
+        
+        for (const auto& size : textSize) {
+            uint32_t posY = current.y - size.y / 2;
+            positions.emplace_back(current.x, posY);
+            current.x += size.x + spacing;
+        }
+    } 
+    else if (totalSize.y + (textSize.size() - 1) * spacing <= extent.y && maxSize.x <= extent.x) {
+        //垂直排列
+        glm::uvec2 current = glm::uvec2(offset.x + extent.x / 2, offset.y + (extent.y - totalSize.y - (textSize.size() - 1) * spacing) / 2);
+        
+        for (const auto& size : textSize) {
+            uint32_t posX = current.x - size.x / 2;
+            positions.emplace_back(posX, current.y);
+            current.y += size.y + spacing;
+        }
+    }
+    else {
+        //网格布局
+        size_t count = textSize.size();
+        size_t cols = static_cast<size_t>(std::ceil(std::sqrt(count)));
+        size_t rows = static_cast<size_t>(std::ceil(static_cast<double>(count) / cols));
+        
+        glm::uvec2 cellSize = glm::uvec2(extent.x / static_cast<uint32_t>(cols), extent.y / static_cast<uint32_t>(rows));
+        
+        for (size_t i = 0; i < count; ++i) {
+            size_t col = i % cols, row = i / cols;
+            const glm::uvec2 cellCenter = glm::uvec2(offset.x + static_cast<uint32_t>(col) * cellSize.x + cellSize.x / 2, offset.y + static_cast<uint32_t>(row) * cellSize.y + cellSize.y / 2);
+            
+            const auto& size = textSize[i];
+            glm::uvec2 pos = cellCenter - size / 2u;
+            
+            pos.x = std::max(pos.x, offset.x);
+            pos.y = std::max(pos.y, offset.y);
+            if(pos.x + size.x > offset.x + extent.x)pos.x = offset.x + extent.x - size.x;
+            if(pos.y + size.y > offset.y + extent.y)pos.y = offset.y + extent.y - size.y;
+            
+            positions.emplace_back(pos);
+        }
+    }
+    
+    return positions;
+}
+void AnansMemes::CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &currentFontSize, const glm::uvec2&fontSzie, const glm::uvec2&fontImageOffset){
+    const glm::uvec2 cutSize = glm::uvec2(currentFontSize.x, mFontSize);
+    if(face >= AnansFace::Tsundere){
+        const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE;
+        glm::ivec2 new_size = ananImage::calculateRotatedSize(angle, cutSize);
+        const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
+        stbi_uc *font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
+        memset(font_data, 0, font_data_size);
+        memset(new_data, 0, new_data_size);
+        ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset);
+        ananImage::rotate(font_data, cutSize, angle, new_data, new_size);
+        // stbi_write_png("rotate_font.png", cutSize.x, cutSize.y, 4, font_data, 0);
+        // stbi_write_png("rotate_new_font.png", new_size.x, new_size.y, 4, new_data, 0);
+#ifdef DEBUG
+        printf("fontOffset = %d, %d\ncutSize = %d, %d\nnew_size = %d, %d\n", fontOffset.x, fontOffset.y, cutSize.x, cutSize.y, new_size.x, new_size.y);
+#endif
+        ananImage::copy(new_data, anan.data, new_size, new_size, anan.size, glm::uvec2(0), fontOffset);
+        delete[]font_data;
+        delete[]new_data;
+    }
+    else{
+        ananImage::copy(mFontData, anan.data, cutSize, fontSzie, anan.size, fontImageOffset, fontOffset);
+    }
+
+}
 std::string AnansMemes::GetAnansImageName(AnansFace face){
     switch (face){
     case AnansFace::Yandere:
@@ -173,6 +263,18 @@ bool AnansMemes::GetAnanImageData(const std::string &path, AnansFace face){
     stbi_image_free(data);
     return true;
 }
+glm::uvec2 AnansMemes::RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &extent, const glm::uvec2&currentFontSize){
+    uint32_t randCount = 0;
+    glm::uvec2 fontOffset = glm::uvec2(0);
+    const glm::uvec2 max = glm::clamp(extent - currentFontSize, glm::uvec2(0), extent);//glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
+    //TODO:应该改进随机算法和下面的判断函数
+    do{
+        ++randCount;
+        fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
+        fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
+    }while((!inExtent(fontOffset, currentFontSize, offset, extent) || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
+    return fontOffset;
+}
 AnansMemes::AnansMemes(/* args */){
 }
 
@@ -233,9 +335,9 @@ bool AnansMemes::AddHand(){
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &extent){
     glm::uvec2 newExtent = extent;
-    if(!mLayout.empty()){
-        //通常表示已经加过图片了
-        newExtent.x -= mImageSize.x;
+    bool bAddImage = !mLayout.empty();
+    if(bAddImage){
+        newExtent.x -= doodle.size.x;
     }
     mFontSize = calculateFontSize(newExtent, text);
     if(!GetFontData(currentPath + fontFile, text)){
@@ -243,69 +345,49 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     }
 
     SetTextColor(text);
-
+    //放置文本
+    std::vector<glm::uvec2>fontImageOffset;
     uint32_t index = 0, currentFontIndex = 0;
     const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, extent);
-    glm::uvec2 fontImageOffset = {}, fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize), cutSize = glm::uvec2(mFontSize);
+    glm::uvec2 fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize);
 
     auto split = ananStr::split(text, line);
 
-    fontImageOffset.x = fontInfo[0].offset.x;
+    std::vector<glm::uvec2>textSize;
     for (auto&it:split){
-        uint32_t currentFontWidth = fonts::GetFontWidth(it, currentFontIndex, fontInfo);
-        if(currentFontWidth >= extent.x){
-            char message[MAX_BYTE];
-            sprintf(message, "currentFontWidth(%d) >= extent.x(%d)", currentFontWidth, extent.x);
-            throw std::out_of_range(message);
-        }
-        glm::uvec2 currentFontSize = glm::uvec2(currentFontWidth, mFontSize);
-        const glm::uvec2 max = glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
-        int32_t randCount = 0;
-        //TODO:应该改进随机算法和下面的判断函数
-        do{
-            fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
-            fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-            ++randCount;
-        }while((!inExtent(fontOffset, currentFontSize, offset, extent)  || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
-        if(randCount >= MAX_RANDOM_COUNT){
-            wprintf(L"randCount >= MAX_RANDOM_COUNT(%d), ignore current and all subsequent strings\n", MAX_RANDOM_COUNT);
-            break;
-        }
-        cutSize.x = currentFontWidth;
+        fontImageOffset.push_back(glm::uvec2(fontInfo[currentFontIndex].offset.x, 0));
+        textSize.push_back(glm::uvec2(fonts::GetFontWidth(it, currentFontIndex, fontInfo), mFontSize));
 
-        if(face >= AnansFace::Tsundere){
-            glm::ivec2 new_size = ananImage::calculateRotatedSize(face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE, cutSize);
-            const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
-            stbi_uc *font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
-            memset(font_data, 0, font_data_size);
-            memset(new_data, 0, new_data_size);
-            ananImage::copy(mFontData, font_data, cutSize, fontSzie, cutSize, fontImageOffset);
-            ananImage::rotate(font_data, cutSize, face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE, new_data, new_size);
-            // stbi_write_png("rotate_font.png", cutSize.x, cutSize.y, 4, font_data, 0);
-            // stbi_write_png("rotate_new_font.png", new_size.x, new_size.y, 4, new_data, 0);
-#ifdef DEBUG
-            printf("fontOffset = %d, %d\ncutSize = %d, %d\nnew_size = %d, %d\n", fontOffset.x, fontOffset.y, cutSize.x, cutSize.y, new_size.x, new_size.y);
-#endif
-            ananImage::copy(new_data, anan.data, new_size, new_size, anan.size, glm::uvec2(0), fontOffset);
-            delete[]font_data;
-            delete[]new_data;
-        }
-        else{
-            ananImage::copy(mFontData, anan.data, cutSize, fontSzie, anan.size, fontImageOffset, fontOffset);
-        }
-
-        fonts::FontAttribute pos;
-        pos.offset = fontOffset;
-        //这个宽度和高度主要用于判断是否重叠，因此需要更准确的数据
-        pos.size = glm::uvec2(currentFontWidth, fontInfo[index].size.y);
-        mLayout.push_back(pos);
-        
         if(index < split.size() - 1){
             currentFontIndex = text.find(split[index + 1], currentFontIndex);
         }
 
         ++index;
-        if(currentFontIndex < fontInfo.size())fontImageOffset.x = fontInfo[currentFontIndex].offset.x;
+    }
+    auto font_offset = layoutTexts(offset, extent, textSize);
+
+    for (uint32_t i = 0; i < split.size(); ++i){
+        if(textSize[i].x >= extent.x){
+            char message[MAX_BYTE];
+            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, extent.x);
+            throw std::out_of_range(message);
+        }
+        const glm::uvec2 currentFontSize = glm::uvec2(textSize[i].x, mFontSize);
+
+        if(face > AnansFace::Speechless || bAddImage){
+            fontOffset = RandomPosition(offset, extent, currentFontSize);
+        }
+        else{
+            fontOffset = font_offset[i];
+        }
+
+        CopyText(fontOffset, currentFontSize, fontSzie, fontImageOffset[i]);
+
+        fonts::FontAttribute pos;
+        pos.offset = fontOffset;
+        //这个宽度和高度主要用于判断是否重叠，因此需要更准确的数据
+        pos.size = glm::uvec2(textSize[i].x, fontInfo[i].size.y);
+        mLayout.push_back(pos);
     }
     return true;
 }
@@ -385,32 +467,33 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     }
     glm::uvec2 imageOffset;
     // ananImage::calculateImageSize(extent, glm::uvec2(width, height), mImageSize);
-    mImageSize = ananImage::calculateImageSize(extent, glm::uvec2(width, height), mLayout.size() + 1);
+    glm::uvec2 imageSize = ananImage::calculateImageSize(extent, glm::uvec2(width, height), mLayout.size() + 1);
     doodle.channels = 4;
-    doodle.size = mImageSize;
-    const uint32_t uImageSize = mImageSize.x * mImageSize.y * doodle.channels;
+    doodle.size = imageSize;
+    const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
     doodle.data = new stbi_uc[uImageSize];
 
-    if(mImageSize != glm::uvec2(width, height)){
-        stbir_resize(data, width, height, 0, doodle.data, mImageSize.x, mImageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
+    if(imageSize != glm::uvec2(width, height)){
+        stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
     }
 
-    if(face == AnansFace::Tsundere){
-        mImageSize = ananImage::calculateRotatedSize(TSUNDERE_ANAN_ANGLE, mImageSize);
-        stbi_uc *temp = new stbi_uc[mImageSize.x * mImageSize.y * doodle.channels];
-        ananImage::rotate(doodle.data, doodle.size, TSUNDERE_ANAN_ANGLE, temp, mImageSize);
+    if(face >= AnansFace::Tsundere){
+        const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE;
+        imageSize = ananImage::calculateRotatedSize(angle, imageSize);
+        stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];
+        ananImage::rotate(doodle.data, doodle.size, angle, temp, imageSize);
         delete[]doodle.data;
         doodle.data = temp;
-        doodle.size = mImageSize;
+        doodle.size = imageSize;
     }
 
     const glm::uvec2 max = glm::uvec2(extent.x > mFontSize ? extent.x - mFontSize : 0, extent.y > mFontSize ? extent.y - mFontSize : 0);
     do{
         imageOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while(!inExtent(imageOffset, mImageSize, offset, extent)  || isOverlapping(imageOffset, mImageSize, mLayout));
+    }while(!inExtent(imageOffset, imageSize, offset, extent)  || isOverlapping(imageOffset, imageSize, mLayout));
 
-    mLayout.push_back({mImageSize, imageOffset});
+    mLayout.push_back({imageSize, imageOffset});
 
     ananImage::copy(doodle.data, anan.data, doodle.size, doodle.size, anan.size, glm::uvec2(0), imageOffset);
 

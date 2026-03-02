@@ -19,8 +19,8 @@ namespace ananStr{
     void split(const std::wstring& text, std::vector<std::wstring>& out);
     std::vector<std::wstring> split(const std::wstring& text, uint32_t count);
 
-    inline bool IsLineBreak(char c){
-        return c == ',' || c == L' ';
+    inline bool IsLineBreak(wchar_t c){
+        return std::iswpunct(c) || c == L' ';
     }
 };
 #endif

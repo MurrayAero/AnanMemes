@@ -36,16 +36,16 @@ int main(int32_t argc, char *argv[]){
     glm::uvec2 offset, extent;
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
-    // anan.AddText(L"给吾辈[点赞投币]", offset, extent);
-    parameter.text = L"你好啊";
-    // parameter.face = (uint32_t)AnansFace::MiniBase;
+    parameter.text = L"老婆们";
+    // parameter.text = L"给吾辈[点赞投币]";
+    // parameter.face = (uint32_t)AnansFace::Nervous;
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈[闭嘴]吧";
-    // parameter.text = L"吾辈 [劝你]归 顺[中国]吧";
-    // anan.AddText(L"吾辈 劝你归顺[中华人民 共和国]", offset, extent);
+    // parameter.text = L"吾辈[劝你]归顺[中国]吧";
+    // parameter.text = L"吾辈 劝你归顺[中华人民共和国]";
     // parameter.text = L"比较好看的夏目安安";
-    // parameter.image = "out.png";
+    parameter.image = "out.png";
     // parameter.text = L"hello word";
 #endif
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
@@ -53,11 +53,11 @@ int main(int32_t argc, char *argv[]){
         extent = glm::uvec2(650, 350); 
     }
     else if(parameter.face < (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(80, 430);
-        extent = glm::uvec2(333, 203);
+        offset = glm::uvec2(85, 430);
+        extent = glm::uvec2(335, 205);
     }
     else if(parameter.face == (uint32_t)AnansFace::Nervous){
-        offset = glm::uvec2(100, 500);
+        offset = glm::uvec2(110, 505);
         extent = glm::uvec2(570, 320);
     }
     else{
@@ -74,7 +74,7 @@ int main(int32_t argc, char *argv[]){
     }
     anan.AddHand();
 
-    if(parameter.angle)anan.Rotate(90);
+    if(parameter.angle)anan.Rotate(parameter.angle);
 
     int32_t result = anan.SaveImage(parameter.out);
     if(result){

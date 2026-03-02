@@ -173,7 +173,7 @@ namespace cp{
         printf("\t-t<text>\ttext on anan's notepad.\n");
         printf("\t-i<image>\timage on anan's notepad.\n");
         printf("\t-f<face>\tanan's face or specify font file\n");
-        printf("\t-o\tanan's\n");
+        printf("\t-o\t\tanan's\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
         printf("\t1 = normal\n");
@@ -186,7 +186,6 @@ namespace cp{
         printf("explain:\n");
         printf("\tuse -t, -i, or both.\n");
         printf("\tenglish delimiters only.\n");
-        printf("\tusage -f specify font file.\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
@@ -200,7 +199,7 @@ namespace cp{
         if(parameter->current_path[0] == '~'){
             parameter->current_path = getenv("HOME") + parameter->current_path.substr(1);
         }
-        while ((opt = getopt(argc, argv, "t:i:f:o:")) != -1){
+        while ((opt = getopt(argc, argv, "t:i:f:o:r:")) != -1){
             if(opt == 't'){
                 parameter->text = utf8_to_wstring(optarg);
             }

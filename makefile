@@ -3,7 +3,6 @@ SRC_DIR    := .
 BUILD_DIR  := build
 LIB_DIR    := lib
 INC_DIR    := include
-#MACRO := -DDEBUG
 
 CXX        := g++
 CXXFLAGS   := -g -Wall -Wextra -Wpedantic -std=c++17
@@ -14,9 +13,15 @@ LIBS       :=
 SRC := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
 
-.PHONY: all clean run
+MACRO :=
 
+.PHONY: all clean run debug
+
+all: MACRO :=
 all: $(BIN)
+
+debug: MACRO := -DDEBUG
+debug: clean $(BIN)
 
 $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) $^ $(LIB_PATH) $(LIBS) $(LDFLAGS) -o $@

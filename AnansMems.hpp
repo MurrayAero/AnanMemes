@@ -18,7 +18,7 @@
 #define FONT_PATH "resource/fonts/"
 #define IMAGE_PATH "resource/image/" 
 #endif
-#define MAX_RANDOM_COUNT 5000
+#define MAX_RANDOM_COUNT 500
 
 #define NERVOUS_ANAN_ANGLE -12
 #define TSUNDERE_ANAN_ANGLE -10
@@ -50,7 +50,7 @@ class AnansMemes{
     float mFontSize;
     std::string fontFile;
     std::string currentPath;
-    glm::uvec2 mImageSize;
+    // glm::uvec2 mImageSize;
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
 
@@ -59,11 +59,15 @@ class AnansMemes{
     std::vector<fonts::FontAttribute>fontInfo;
     // uint32_t GetInvalidPixelSize(const std::wstring&text);
 
+    void CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &currentFontSize, const glm::uvec2&fontSzie, const glm::uvec2&fontImageOffset);
+
     std::string GetAnansImageName(AnansFace face);
 
     bool GetFontData(const std::string&fontPath, const std::wstring&text);
     
     bool GetAnanImageData(const std::string&path, AnansFace face);
+
+    glm::uvec2 RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &extent, const glm::uvec2&currentFontSize);
 
     void SetTextColor(const std::wstring&text);
 public:

@@ -25,9 +25,7 @@ namespace fonts{
         int32_t startX = fontInfo[start].offset.x;
         int32_t endX = fontInfo[end - 1].offset.x + fontInfo[end - 1].size.x;
         
-        int32_t totalWidth = endX - startX;
-        
-        return totalWidth;
+        return endX - startX;
     }
     static inline std::vector<FontAttribute> GenerateFontBitmap(const wchar_t* text, uint32_t len, stbtt_fontinfo* info, float pixel, unsigned char* outBitmap, int bitmapWidth) {
         float scale = stbtt_ScaleForPixelHeight(info, pixel);
