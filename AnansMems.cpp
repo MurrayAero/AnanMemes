@@ -62,102 +62,79 @@ bool isOverlapping(const glm::uvec2& pos, const glm::uvec2& size, const std::vec
     }
     return false;
 }
-bool inExtent(const glm::uvec2& pos, const glm::uvec2& size, const glm::uvec2& offset, const glm::uvec2& extent) {
+bool inArea(const glm::uvec2& pos, const glm::uvec2& size, const glm::uvec2& offset, const glm::uvec2& extent) {
     return pos.x >= offset.x && pos.y >= offset.y && pos.x + size.x <= offset.x + extent.x && pos.y + size.y <= offset.y + extent.y;
 }
-float calculateFontSize(const glm::uvec2& extent, const std::wstring& text) {
-    if (extent.x == 0 || extent.y == 0 || text.empty()) {
-        return 0;
-    }
-    std::vector<size_t> lineLengths;
-    size_t currentLineLength = 0;
+std::vector<std::wstring> splitLines(const std::wstring& text) {
+    std::vector<std::wstring> lines;
+    std::wstring currentLine;
     
     for (wchar_t ch : text) {
         if (ananStr::IsLineBreak(ch)) {
-            lineLengths.push_back(currentLineLength);
-            currentLineLength = 0;
+            lines.push_back(currentLine);
+            currentLine.clear();
         } else {
-            ++currentLineLength;
+            currentLine += ch;
         }
     }
-    lineLengths.push_back(currentLineLength);
-    size_t maxCharCount = 0;
-    for (size_t len : lineLengths) {
-        maxCharCount = std::max(maxCharCount, len);
+    
+    // 添加最后一行
+    if (!currentLine.empty() || text.empty()) {
+        lines.push_back(currentLine);
     }
     
-    if (maxCharCount == 0) {
-        return 0;
-    }
-    
-    size_t lineCount = lineLengths.size();
-    
-    float maxWidthPerChar = static_cast<float>(extent.x) / maxCharCount;
-    float maxHeightPerChar = static_cast<float>(extent.y) / lineCount;
-    
-    return std::min(maxWidthPerChar, maxHeightPerChar);
+    return lines;
 }
-std::vector<glm::uvec2> layoutTexts(const glm::uvec2& offset, const glm::uvec2& extent, const std::vector<glm::uvec2>& textSize) {
+float calculateFontSize(const glm::uvec2& area, const std::wstring& text) {
+    std::vector<std::wstring> lines = splitLines(text);
+    const uint32_t lineCount = lines.size();
+    // 根据高度计算字体大小
+    float fontSize = (area.y - TEXT_MARGIN * 2) / lineCount;
+    
+    size_t maxChars = 0;
+    for (const auto& line : lines) {
+        maxChars = std::max(maxChars, line.length());
+    }
+    
+    if (maxChars > 0) {
+        float neededWidth = maxChars * fontSize;
+        if (neededWidth > static_cast<float>(area.x)) {
+            fontSize = fontSize * static_cast<float>(area.x) / neededWidth;
+        }
+    }
+    
+    return fontSize;
+}
+std::vector<glm::uvec2> layoutTexts(const glm::uvec2& offset, const glm::uvec2& area, const std::vector<glm::uvec2>& textSize) {
     std::vector<glm::uvec2> positions;
     positions.reserve(textSize.size());
     
     if (textSize.empty()) {
         return positions;
     }
-    glm::uvec2 totalSize = glm::uvec2(0), maxSize = glm::uvec2(0);
-    for (const auto& size : textSize) {
-        totalSize.x += size.x;
-        maxSize.y = std::max(maxSize.y, size.y);
-        maxSize.x = std::max(maxSize.x, size.x);
-        totalSize.y += size.y;
-    }
-    // 如果总宽度适合extent，使用水平居中
-    // 否则使用垂直堆叠居中
+    
     const uint32_t spacing = 1;
     
-    if (totalSize.x + (textSize.size() - 1) * spacing <= extent.x && 
-        maxSize.y <= extent.y) {
-        //水平排列
-        glm::uvec2 current = glm::uvec2(offset.x + (extent.x - totalSize.x - (textSize.size() - 1) * spacing) / 2, offset.y + extent.y / 2);
-        
-        for (const auto& size : textSize) {
-            uint32_t posY = current.y - size.y / 2;
-            positions.emplace_back(current.x, posY);
-            current.x += size.x + spacing;
-        }
-    } 
-    else if (totalSize.y + (textSize.size() - 1) * spacing <= extent.y && maxSize.x <= extent.x) {
-        //垂直排列
-        glm::uvec2 current = glm::uvec2(offset.x + extent.x / 2, offset.y + (extent.y - totalSize.y - (textSize.size() - 1) * spacing) / 2);
-        
-        for (const auto& size : textSize) {
-            uint32_t posX = current.x - size.x / 2;
-            positions.emplace_back(posX, current.y);
-            current.y += size.y + spacing;
-        }
+    // 只使用垂直排列，每个文本占一行
+    uint32_t totalHeight = 0;
+    for (const auto& size : textSize) {
+        totalHeight += size.y;
     }
-    else {
-        //网格布局
-        size_t count = textSize.size();
-        size_t cols = static_cast<size_t>(std::ceil(std::sqrt(count)));
-        size_t rows = static_cast<size_t>(std::ceil(static_cast<double>(count) / cols));
-        
-        glm::uvec2 cellSize = glm::uvec2(extent.x / static_cast<uint32_t>(cols), extent.y / static_cast<uint32_t>(rows));
-        
-        for (size_t i = 0; i < count; ++i) {
-            size_t col = i % cols, row = i / cols;
-            const glm::uvec2 cellCenter = glm::uvec2(offset.x + static_cast<uint32_t>(col) * cellSize.x + cellSize.x / 2, offset.y + static_cast<uint32_t>(row) * cellSize.y + cellSize.y / 2);
-            
-            const auto& size = textSize[i];
-            glm::uvec2 pos = cellCenter - size / 2u;
-            
-            pos.x = std::max(pos.x, offset.x);
-            pos.y = std::max(pos.y, offset.y);
-            if(pos.x + size.x > offset.x + extent.x)pos.x = offset.x + extent.x - size.x;
-            if(pos.y + size.y > offset.y + extent.y)pos.y = offset.y + extent.y - size.y;
-            
-            positions.emplace_back(pos);
-        }
+    // 添加行间距
+    if (textSize.size() > 1) {
+        totalHeight += (textSize.size() - 1) * spacing;
+    }
+    
+    // 计算起始位置（垂直居中）
+    glm::uvec2 current = glm::uvec2(
+        offset.x + area.x / 2,  // 水平居中
+        offset.y + (area.y - totalHeight) / 2  // 垂直居中
+    );
+    
+    for (const auto& size : textSize) {
+        uint32_t posX = current.x - size.x / 2;  // 水平居中
+        positions.emplace_back(posX, current.y);
+        current.y += size.y + spacing;  // 移动到下一行
     }
     
     return positions;
@@ -185,7 +162,6 @@ void AnansMemes::CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &current
     else{
         ananImage::copy(mFontData, anan.data, cutSize, fontSzie, anan.size, fontImageOffset, fontOffset);
     }
-
 }
 std::string AnansMemes::GetAnansImageName(AnansFace face){
     switch (face){
@@ -247,9 +223,9 @@ bool AnansMemes::GetAnanImageData(const std::string &path, AnansFace face){
         delete[]hand.data;
         hand.data = nullptr;
     }
-    std::string ananimage = GetAnansImageName(face);
-    char imageName[MAX_PATH];
     int32_t c;
+    char imageName[MAX_PATH];
+    std::string ananimage = GetAnansImageName(face);
     sprintf(imageName, "%s%s", path.c_str(), ananimage.c_str());
     stbi_uc *data = stbi_load(imageName, &anan.size.x, &anan.size.y, &c, STBI_rgb_alpha);
     if(!data){
@@ -263,16 +239,16 @@ bool AnansMemes::GetAnanImageData(const std::string &path, AnansFace face){
     stbi_image_free(data);
     return true;
 }
-glm::uvec2 AnansMemes::RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &extent, const glm::uvec2&currentFontSize){
+glm::uvec2 AnansMemes::RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &area, const glm::uvec2&currentFontSize){
     uint32_t randCount = 0;
     glm::uvec2 fontOffset = glm::uvec2(0);
-    const glm::uvec2 max = glm::clamp(extent - currentFontSize, glm::uvec2(0), extent);//glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
+    const glm::uvec2 max = glm::clamp(area - currentFontSize, glm::uvec2(0), area);//glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
     //TODO:应该改进随机算法和下面的判断函数
     do{
         ++randCount;
         fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while((!inExtent(fontOffset, currentFontSize, offset, extent) || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
+    }while((!inArea(fontOffset, currentFontSize, offset, area) || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
     return fontOffset;
 }
 AnansMemes::AnansMemes(/* args */){
@@ -333,22 +309,22 @@ bool AnansMemes::AddHand(){
     ananImage::copy(hand.data, anan.data, hand.size, hand.size, anan.size);
     return true;
 }
-bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &extent){
-    glm::uvec2 newExtent = extent;
-    bool bAddImage = !mLayout.empty();
-    if(bAddImage){
+bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &area){
+    glm::uvec2 newExtent = area;
+    bool hasImage = !mLayout.empty();
+    if(hasImage){
         newExtent.x -= doodle.size.x;
     }
     mFontSize = calculateFontSize(newExtent, text);
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
-
+    
     SetTextColor(text);
     //放置文本
     std::vector<glm::uvec2>fontImageOffset;
     uint32_t index = 0, currentFontIndex = 0;
-    const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, extent);
+    const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, area);
     glm::uvec2 fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize);
 
     auto split = ananStr::split(text, line);
@@ -361,25 +337,19 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         if(index < split.size() - 1){
             currentFontIndex = text.find(split[index + 1], currentFontIndex);
         }
-
         ++index;
     }
-    auto font_offset = layoutTexts(offset, extent, textSize);
+    auto font_offset = layoutTexts(offset, area, textSize);
 
     for (uint32_t i = 0; i < split.size(); ++i){
-        if(textSize[i].x >= extent.x){
+        if(textSize[i].x >= area.x){
             char message[MAX_BYTE];
-            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, extent.x);
+            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, area.x);
             throw std::out_of_range(message);
         }
         const glm::uvec2 currentFontSize = glm::uvec2(textSize[i].x, mFontSize);
 
-        if(face > AnansFace::Speechless || bAddImage){
-            fontOffset = RandomPosition(offset, extent, currentFontSize);
-        }
-        else{
-            fontOffset = font_offset[i];
-        }
+        fontOffset = font_offset[i];
 
         CopyText(fontOffset, currentFontSize, fontSzie, fontImageOffset[i]);
 
@@ -438,7 +408,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
 //         do{
 //             chatOffset.x = offset.x + rand() % (offset.x + extent.x - offset.x);
 //             chatOffset.y = offset.y + rand() % (offset.y + extent.y - offset.y);
-//         }while(!inExtent(chatOffset, glm::uvec2(currentFontWidth, mFontSize.y), offset, extent)  || isOverlapping(chatOffset, mMediaLayout));
+//         }while(!inArea(chatOffset, glm::uvec2(currentFontWidth, mFontSize.y), offset, extent)  || isOverlapping(chatOffset, mMediaLayout));
 //         glm::uvec4 pos;
 //         pos.x = chatOffset.x;
 //         pos.y = chatOffset.y;
@@ -454,7 +424,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
 //     return true;
 // }
 
-bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, const glm::uvec2&extent){
+bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, const glm::uvec2&area){
     if(doodle.data){
         delete[]doodle.data;
         doodle.data = nullptr;
@@ -467,7 +437,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     }
     glm::uvec2 imageOffset;
     // ananImage::calculateImageSize(extent, glm::uvec2(width, height), mImageSize);
-    glm::uvec2 imageSize = ananImage::calculateImageSize(extent, glm::uvec2(width, height), mLayout.size() + 1);
+    glm::uvec2 imageSize = ananImage::calculateImageSize(area, glm::uvec2(width, height), mLayout.size() + 1);
     doodle.channels = 4;
     doodle.size = imageSize;
     const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
@@ -487,11 +457,11 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         doodle.size = imageSize;
     }
 
-    const glm::uvec2 max = glm::uvec2(extent.x > mFontSize ? extent.x - mFontSize : 0, extent.y > mFontSize ? extent.y - mFontSize : 0);
+    const glm::uvec2 max = glm::uvec2(area.x > mFontSize ? area.x - mFontSize : 0, area.y > mFontSize ? area.y - mFontSize : 0);
     do{
         imageOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while(!inExtent(imageOffset, imageSize, offset, extent)  || isOverlapping(imageOffset, imageSize, mLayout));
+    }while(!inArea(imageOffset, imageSize, offset, area)  || isOverlapping(imageOffset, imageSize, mLayout));
 
     mLayout.push_back({imageSize, imageOffset});
 
@@ -543,7 +513,7 @@ void AnansMemes::SetTextColor(const std::wstring&text){
             color = COMMAND_COLOR;
         }
         else{
-            color = glm::uvec3(0);
+            color = defaultTextColor;
         }
         size.x = fonts::GetFontWidth(it, currentFontInfo, fontInfo);
         fonts::SetColor(mFontData, fontSize, color, mFontData, size, offset);

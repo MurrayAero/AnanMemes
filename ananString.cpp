@@ -21,7 +21,7 @@
     }
     size_t ananStr::GetFirstPunctuationPos(const std::wstring& text) {
         for (size_t i = 0; i < text.length(); ++i) {
-            if (std::iswpunct(text[i]) || text[i] == L' ') {
+            if (IsLineBreak(text[i])) {
                 return i;
             }
         }
@@ -33,7 +33,7 @@
         std::wstring current_segment;
         
         for (wchar_t c : text) {
-            if (std::iswpunct(c) || c == L' ') {
+            if (IsLineBreak(c)) {
                 if (!current_segment.empty()) {
                     result.push_back(current_segment);
                     current_segment.clear();

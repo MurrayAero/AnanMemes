@@ -1,9 +1,10 @@
 #ifndef COMMAN_PARAMETER_HPP
 #define COMMAN_PARAMETER_HPP
+#include <string>
 #include <locale>
 #include <string>
-#include <cstring>
 #include <cstdint>
+#include <sstream>
 #ifdef _WIN32
 #include <Windows.h>
 char *optarg;
@@ -26,9 +27,12 @@ namespace cp{
         float angle = 0;
         std::wstring text;
         uint32_t face = 0;
+        //指定偏移。大小改用图片的百分比
+        bool addHand = true;//这个选项目前是用来玩的，主要用于替换其他图片
         std::string image = "";
         std::string out = "out.png";
         std::string current_path = "";
+        glm::uvec3 textColor = glm::uvec3(0);
         std::string fontFile = FONT_PATH"SourceHanSerifCN-Bold.otf";
     };
 #ifdef _WIN32
@@ -169,11 +173,15 @@ namespace cp{
         printf("usage:[-t text] [-i image] [-f face] [-o output image]\n");
         printf("example:-t\"input text\" -i input.png -f6 -o out.png\n");
         printf("option:\n");
-        printf("\t-r<angle>\tangle;rotate anan's.\n");
-        printf("\t-t<text>\ttext on anan's notepad.\n");
-        printf("\t-i<image>\timage on anan's notepad.\n");
-        printf("\t-f<face>\tanan's face or specify font file\n");
-        printf("\t-o\t\tanan's\n");
+        printf("\tbase:\n");
+        printf("\t\t-t<text>\ttext on anan's notepad.\n");
+        printf("\t\t-i<image>\timage on anan's notepad.\n");
+        printf("\t\t-f<face>\tanan's face or specify font file\n");
+        printf("\t\t-o<output image>\t\tanan's\n");
+        printf("\toperate:\n");
+        printf("\t\t-r<angle>\tangle;rotate anan's.\n");
+        printf("\t\t-n<no add hand>\twill not add hand of anan's.\n");
+        printf("\t\t-c<text color>\twill change text color;format:R,G,B.\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
         printf("\t1 = normal\n");
@@ -199,9 +207,22 @@ namespace cp{
         if(parameter->current_path[0] == '~'){
             parameter->current_path = getenv("HOME") + parameter->current_path.substr(1);
         }
-        while ((opt = getopt(argc, argv, "t:i:f:o:r:")) != -1){
+        while ((opt = getopt(argc, argv, "t:i:f:o:r:n:c:")) != -1){
             if(opt == 't'){
                 parameter->text = utf8_to_wstring(optarg);
+            }
+            else if(opt == 'c'){
+                std::stringstream ss(optarg);
+                float r, g, b;
+                char delim;  // 用于读取分隔符（逗号）
+                ss >> r >> delim >> g >> delim >> b;
+                if (ss.fail()) {
+                    throw std::invalid_argument("Invalid color format. Use 'R,G,B'");
+                }
+                parameter->textColor = glm::vec3(r, g, b);
+            }
+            else if(opt == 'n'){
+                parameter->addHand = false;
             }
             else if(opt == 'r'){
                 parameter->angle = atoi(optarg);

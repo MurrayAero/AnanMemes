@@ -20,8 +20,10 @@
 #endif
 #define MAX_RANDOM_COUNT 500
 
-#define NERVOUS_ANAN_ANGLE -12
+#define NERVOUS_ANAN_ANGLE -10
 #define TSUNDERE_ANAN_ANGLE -10
+
+#define TEXT_MARGIN 5
 
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 
@@ -53,6 +55,7 @@ class AnansMemes{
     // glm::uvec2 mImageSize;
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
+    glm::uvec3 defaultTextColor = glm::uvec3(0);
 
     std::vector<fonts::FontAttribute>mLayout;
     
@@ -61,13 +64,11 @@ class AnansMemes{
 
     void CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &currentFontSize, const glm::uvec2&fontSzie, const glm::uvec2&fontImageOffset);
 
-    std::string GetAnansImageName(AnansFace face);
-
     bool GetFontData(const std::string&fontPath, const std::wstring&text);
     
     bool GetAnanImageData(const std::string&path, AnansFace face);
 
-    glm::uvec2 RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &extent, const glm::uvec2&currentFontSize);
+    glm::uvec2 RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &area, const glm::uvec2&currentFontSize);
 
     void SetTextColor(const std::wstring&text);
 public:
@@ -78,17 +79,22 @@ public:
 
     bool AddHand();
     //offset是白板的左上角, extent是白板的大小
-    bool AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&extent);
-    bool AddImage(const std::string&image, const glm::uvec2&offset, const glm::uvec2&extent);
+    bool AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&area);
+    bool AddImage(const std::string&image, const glm::uvec2&offset, const glm::uvec2&area);
 
+    std::string GetAnansImageName(AnansFace face);
+    
     void Rotate(float angle);
     
     int32_t SaveImage(const std::string &image);
 
     bool SetFace(AnansFace face);
 
-    inline void SetFontFile(const std::string&fontFile){
+    inline void SetFontFile(const std::string&fontFile)noexcept{
         this->fontFile = fontFile;
+    }
+    inline void SetTextColor(const glm::uvec3&color)noexcept{
+        defaultTextColor = color;
     }
 };
 #endif

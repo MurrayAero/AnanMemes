@@ -20,7 +20,8 @@ namespace ananStr{
     std::vector<std::wstring> split(const std::wstring& text, uint32_t count);
 
     inline bool IsLineBreak(wchar_t c){
-        return std::iswpunct(c) || c == L' ';
+        return c == L' ';
+        // return c != '!' && c != '?' && c != '.' && c != '~' && (std::iswpunct(c) || c == L' ');
     }
 };
 #endif
