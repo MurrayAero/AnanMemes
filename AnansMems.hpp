@@ -20,10 +20,12 @@
 #endif
 #define MAX_RANDOM_COUNT 500
 
-#define NERVOUS_ANAN_ANGLE -10
-#define TSUNDERE_ANAN_ANGLE -10
+#define NERVOUS_ANAN_ANGLE -11
+#define TSUNDERE_ANAN_ANGLE -15
 
 #define TEXT_MARGIN 5
+
+#define OUTLINE_SIZE 3
 
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 
@@ -55,7 +57,7 @@ class AnansMemes{
     // glm::uvec2 mImageSize;
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
-    glm::uvec3 defaultTextColor = glm::uvec3(0);
+    glm::uvec3 defaultTextColor = glm::uvec3(0xff * .8);
 
     std::vector<fonts::FontAttribute>mLayout;
     

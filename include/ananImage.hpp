@@ -130,15 +130,13 @@ namespace ananImage{
             }
         }
     }
-    static inline void convertFontToRGBA(const unsigned char *fontData, const glm::uvec2 &size, unsigned char *data){
-        uint32_t width = size.x;
-        uint32_t height = size.y;
-        uint32_t totalPixels = width * height;
-        memset(data, 0, totalPixels * 4);
+    static inline void convertFontToRGBA(const unsigned char *fontData, const glm::uvec2 &size, unsigned char *out){
+        uint32_t totalPixels = size.x * size.y;
+        memset(out, 0, totalPixels * 4);
         for (uint32_t i = 0; i < totalPixels; ++i) {
             uint32_t dstIndex = i * 4;
-            data[dstIndex] = fontData[i];
-            // data[dstIndex + 3] = MAX_BYTE;
+            out[dstIndex] = fontData[i];
+            // out[dstIndex + 3] = MAX_BYTE;
         }
     }
     static inline void copy(const unsigned char *source, unsigned char *destination, const glm::uvec2&cutSize, const glm::uvec2& srcSize, const glm::uvec2& dstSize, const glm::uvec2& srcOffset = glm::uvec2(0), const glm::uvec2& destOffset = glm::uvec2(0)) {

@@ -202,7 +202,7 @@ bool AnansMemes::GetFontData(const std::string&fontPath, const std::wstring &tex
     const uint32_t fontSize = mFontSize * fontCount * mFontSize;
     stbi_uc *fontData = new stbi_uc[fontSize];
     memset(fontData, 0, fontSize);
-    fontInfo = fonts::GenerateFont(fontBuffer, mFontSize * fontCount, text.data(), fontCount, fontData);
+    fontInfo = fonts::GenerateFont(fontBuffer, glm::ivec2(mFontSize * fontCount, mFontSize), text.data(), fontCount, fontData, OUTLINE_SIZE);
     // stbi_write_bmp("fonttest.bmp", mFontSize * fontCount, mFontSize, 1, fontData);
     fclose(fontFile);
     mFontData = new stbi_uc[fontSize * 4];
@@ -349,8 +349,13 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         }
         const glm::uvec2 currentFontSize = glm::uvec2(textSize[i].x, mFontSize);
 
-        fontOffset = font_offset[i];
-
+        if(hasImage){
+            fontOffset = RandomPosition(offset, area, currentFontSize);
+        }
+        else{
+            fontOffset = font_offset[i];
+        }
+        fontImageOffset[i].x = std::max(0, (int32_t)fontImageOffset[i].x - OUTLINE_SIZE);
         CopyText(fontOffset, currentFontSize, fontSzie, fontImageOffset[i]);
 
         fonts::FontAttribute pos;
@@ -463,7 +468,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
     }while(!inArea(imageOffset, imageSize, offset, area)  || isOverlapping(imageOffset, imageSize, mLayout));
 
-    mLayout.push_back({imageSize, imageOffset});
+    mLayout.push_back({0, imageSize, imageOffset});
 
     ananImage::copy(doodle.data, anan.data, doodle.size, doodle.size, anan.size, glm::uvec2(0), imageOffset);
 

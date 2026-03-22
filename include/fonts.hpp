@@ -11,6 +11,7 @@
 #endif
 namespace fonts{
     struct FontAttribute{
+        int advance;
         glm::uvec2 size;
         glm::uvec2 offset;
     };
@@ -27,16 +28,18 @@ namespace fonts{
         
         return endX - startX;
     }
-    static inline std::vector<FontAttribute> GenerateFontBitmap(const wchar_t* text, uint32_t len, stbtt_fontinfo* info, float pixel, unsigned char* outBitmap, int bitmapWidth) {
+    static inline std::vector<FontAttribute> GenerateFontBitmap(const wchar_t* text, uint32_t len, stbtt_fontinfo* info, float pixel, int outlinePixels, unsigned char* outBitmap, const glm::ivec2&bitmapSize) {
         float scale = stbtt_ScaleForPixelHeight(info, pixel);
-
+        
         int32_t ascent, descent, lineGap;
         stbtt_GetFontVMetrics(info, &ascent, &descent, &lineGap);
         ascent = roundf(ascent * scale);
         
         std::vector<FontAttribute> fontInfo(len);
         
-        int cursor = 0;
+        // 水平排列：从左边开始，有描边时预留左边距
+        int cursorX = (outlinePixels > 0) ? outlinePixels : 0;
+        const int outline = std::max(0, outlinePixels);        
         for (uint32_t i = 0; i < len; ++i) {
             int advanceWidth, leftSideBearing;
             stbtt_GetCodepointHMetrics(info, text[i], &advanceWidth, &leftSideBearing);
@@ -44,24 +47,95 @@ namespace fonts{
             int c_x1, c_y1, c_x2, c_y2;
             stbtt_GetCodepointBitmapBox(info, text[i], scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
             
-            int y_offset = ascent + c_y1;
-            int x_offset = cursor + roundf(leftSideBearing * scale);
-            int byteOffset = x_offset + y_offset * bitmapWidth;
+            int glyphW = c_x2 - c_x1;
+            int glyphH = c_y2 - c_y1;
             
-            stbtt_MakeCodepointBitmap(info, outBitmap + byteOffset, c_x2 - c_x1, c_y2 - c_y1, bitmapWidth, scale, scale, text[i]);
+            // 计算基准位置（水平排列）
+            // x: 当前光标 + 左侧 bearing
+            // y: baseline(ascent) + 字形相对基准线的偏移(c_y1)
+            int glyphX = cursorX + roundf(leftSideBearing * scale);
+            int glyphY = ascent + c_y1;
             
-            cursor += roundf(advanceWidth * scale);
+            // 有描边时向外扩展
+            int renderX = glyphX;
+            int renderY = glyphY;
+            if (outline > 0) {
+                renderX -= outline;
+                renderY -= outline;
+            }
             
+            renderX = std::max(0, renderX);
+            renderY = std::max(0, renderY);
+
+            // 确保不超出位图底部
+            if (renderY + glyphH + outline * 2 > bitmapSize.y) {
+                renderY = std::max(0, bitmapSize.y - glyphH - outline * 2);
+            }
+            
+            if (outline == 0) {
+                // stride = bitmapSize.x（整行宽度）
+                unsigned char* dest = outBitmap + renderY * bitmapSize.x + renderX;
+                stbtt_MakeCodepointBitmap(info, dest, glyphW, glyphH, bitmapSize.x, scale, scale, text[i]);
+            } else {
+                std::vector<unsigned char> glyph(glyphW * glyphH, 0);
+                // 渲染到临时缓冲区，stride = glyphW(紧密排列)
+                stbtt_MakeCodepointBitmap(info, glyph.data(), glyphW, glyphH, glyphW, scale, scale, text[i]);
+                
+                // 1. 膨胀画描边(灰度 128)
+                for (int gy = 0; gy < glyphH; ++gy) {
+                    for (int gx = 0; gx < glyphW; ++gx) {
+                        if (!glyph[gy * glyphW + gx]) continue;
+                        
+                        for (int oy = -outline; oy <= outline; ++oy) {
+                            for (int ox = -outline; ox <= outline; ++ox) {
+                                // 圆形核
+                                if (ox*ox + oy*oy > outline*outline) continue;
+                                
+                                int dx = renderX + gx + ox;
+                                int dy = renderY + gy + oy;
+                                if (dx < 0 || dx >= bitmapSize.x || dy < 0 || dy >= bitmapSize.y) continue;
+                                
+                                unsigned char* pixel = outBitmap + dy * bitmapSize.x + dx;
+                                if (*pixel < 128) *pixel = 128;
+                            }
+                        }
+                    }
+                }
+                
+                // 2. 覆盖文字（灰度 255）
+                for (int gy = 0; gy < glyphH; ++gy) {
+                    for (int gx = 0; gx < glyphW; ++gx) {
+                        if (!glyph[gy * glyphW + gx]) continue;
+                        int dx = renderX + gx;
+                        int dy = renderY + gy;
+                        if (dx < 0 || dx >= bitmapSize.x || dy < 0 || dy >= bitmapSize.y) continue;
+                        outBitmap[dy * bitmapSize.x + dx] = 255;
+                    }
+                }
+            }
+            
+            // 前进光标（水平方向）
+            cursorX += roundf(advanceWidth * scale);
+            
+            // 字距调整
             if (i + 1 < len) {
                 int kern = stbtt_GetCodepointKernAdvance(info, text[i], text[i + 1]);
-                cursor += roundf(kern * scale);
+                cursorX += roundf(kern * scale);
             }
-            fontInfo[i].offset = glm::uvec2(x_offset, y_offset);
-            fontInfo[i].size = glm::uvec2(c_x2 - c_x1, c_y2 - c_y1);
+            
+            // 记录属性
+            int totalW = glyphW + (outline > 0 ? outline * 2 : 0);
+            int totalH = glyphH + (outline > 0 ? outline * 2 : 0);
+            
+            fontInfo[i].offset = glm::uvec2(renderX, renderY);
+            fontInfo[i].size = glm::uvec2(totalW, totalH);
+            fontInfo[i].advance = roundf(advanceWidth * scale);
         }
+        
         return fontInfo;
     }
-    static inline std::vector<FontAttribute> GenerateFont(const unsigned char *fontData, int width, const wchar_t word[], uint32_t len, unsigned char *out){
+
+    static inline std::vector<FontAttribute> GenerateFont(const unsigned char *fontData, const glm::ivec2&size, const wchar_t word[], uint32_t len, unsigned char *out, int outlinePixels = 0){
         stbtt_fontinfo info;
         int offset = stbtt_GetFontOffsetForIndex(fontData, 0);
         if (offset < 0) {
@@ -73,8 +147,8 @@ namespace fonts{
             printf("in function:%s, stbtt_InitFont error, result = %d\n", __FUNCTION__, result);
             return {};
         }
-        float pixels = width / len;
-        return GenerateFontBitmap(word, len, &info, pixels, out, width);
+        float pixels = size.x / len;
+        return GenerateFontBitmap(word, len, &info, pixels, outlinePixels, out, size);
     }
     //每个字体均对齐
     static inline std::vector<FontAttribute> GetFontImageData(const unsigned char *fontData, int width, int height, const wchar_t word[], uint32_t len, unsigned char *out) {
@@ -126,21 +200,19 @@ namespace fonts{
     }
     static inline void SetColor(const unsigned char *data, const glm::uvec2&size, const glm::uvec3&color, unsigned char *out, const glm::uvec2&outSize, uint32_t width_offset){
         const uint32_t channels = 4;
-#ifdef DEBUG
-        const uint32_t imageSize = size.x * size.y * channels;
-#endif
         for (uint64_t y = 0; y < outSize.y; ++y){
             for (uint64_t x = 0; x < outSize.x; ++x){
                 const uint64_t idx = ROW_COLUMN_TO_INDEX(y, x + width_offset, size.x) * channels;
-#ifdef DEBUG
-                if (idx + 3 >= imageSize){
-                    printf("idx + 3(%d) >= imageSize(%d)\n", idx + 3, imageSize);
-                }
-#endif
-                if (data[idx]){
+                if (data[idx] >= 150) {
                     out[idx] = color.r;
                     out[idx + 1] = color.g;
                     out[idx + 2] = color.b;
+                    out[idx + 3] = 0xff;                    
+                }
+                else if (data[idx] >= 100) {
+                    out[idx] = 0;
+                    out[idx + 1] = 0;
+                    out[idx + 2] = 0;
                     out[idx + 3] = 0xff;
                 }
             }

@@ -50,8 +50,9 @@ int32_t main(int32_t argc, char *argv[]){
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // parameter.text = L"老婆们";
-    parameter.face = 7;
-    parameter.text = L"看垃圾 的眼神";
+    // parameter.face = 6;
+    parameter.text = L"很晚了 大家晚安";
+    // parameter.text = L"看垃圾 的眼神";
     // parameter.textColor = glm::uvec3(255, 0, 0);
     // parameter.text = L"给吾辈[点赞投币]";
     // parameter.face = (uint32_t)AnansFace::Nervous;
@@ -74,7 +75,7 @@ int32_t main(int32_t argc, char *argv[]){
         extent = calcNopepadSize(ananImage, glm::vec2(.7, .35), parameter.current_path);
     }
     else{
-        offset = glm::uvec2(85, 430);
+        offset = glm::uvec2(95, 450);
         extent = calcNopepadSize(ananImage, glm::vec2(.625, .255), parameter.current_path);
     }
     if(extent == glm::uvec2(0)){
