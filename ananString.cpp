@@ -4,20 +4,20 @@
         out.erase(std::remove(out.begin(), out.end(), L' '), out.end());
     }
     std::wstring ananStr::fixBrackets(const std::wstring& input) {
-        std::size_t pos = 0;
-        std::wstring result = input;
-        while(pos < result.length()){
-            pos = result.find('[', pos);
-            if(pos == std::wstring::npos)break;
-            std::size_t symbol = GetFirstPunctuationPos(result.c_str() + pos + 1);
-            if (symbol + pos + 1 != std::wstring::npos) {
-                result.insert(symbol + pos + 1, L"]");
-            } else {
-                result.append(L"]");
+        int balance = 0;
+        for (wchar_t ch : input) {
+            if (ch == L'[') {
+                ++balance;
+            } else if (ch == L']') {
+                --balance;
             }
-            pos += symbol + 1;
         }
-        return result;
+        if (balance > 0) {
+            std::wstring result = input;
+            result.append(balance, L']');
+            return result;
+        }
+        return input;
     }
     size_t ananStr::GetFirstPunctuationPos(const std::wstring& text) {
         for (size_t i = 0; i < text.length(); ++i) {

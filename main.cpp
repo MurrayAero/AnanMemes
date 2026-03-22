@@ -51,13 +51,14 @@ int32_t main(int32_t argc, char *argv[]){
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // parameter.text = L"老婆们";
     // parameter.face = 6;
-    parameter.text = L"很晚了 大家晚安";
+    // parameter.text = L"很晚了 大家晚安";
     // parameter.text = L"看垃圾 的眼神";
     // parameter.textColor = glm::uvec3(255, 0, 0);
     // parameter.text = L"给吾辈[点赞投币]";
     // parameter.face = (uint32_t)AnansFace::Nervous;
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
+    parameter.text =L"给吾辈[倒杯茶]";
     // parameter.text =L"给吾辈[闭嘴]吧";
     // parameter.text = L"吾辈[劝你]归顺[中国]吧";
     // parameter.text = L"吾辈 劝你归顺[中华人民共和国]";
