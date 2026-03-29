@@ -241,15 +241,15 @@ bool AnansMemes::GetAnanImageData(const std::string &path, AnansFace face){
 }
 glm::uvec2 AnansMemes::RandomPosition(const glm::uvec2 &offset, const glm::uvec2 &area, const glm::uvec2&currentFontSize){
     uint32_t randCount = 0;
-    glm::uvec2 fontOffset = glm::uvec2(0);
+    glm::uvec2 position = glm::uvec2(0);
     const glm::uvec2 max = glm::clamp(area - currentFontSize, glm::uvec2(0), area);//glm::uvec2(extent.x > currentFontSize.x ? extent.x - currentFontSize.x : 0, extent.y > currentFontSize.y ? extent.y - currentFontSize.y : 0);
     //TODO:应该改进随机算法和下面的判断函数
     do{
         ++randCount;
-        fontOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
-        fontOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while((!inArea(fontOffset, currentFontSize, offset, area) || isOverlapping(fontOffset, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
-    return fontOffset;
+        position.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
+        position.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
+    }while((!inArea(position, currentFontSize, offset, area) || isOverlapping(position, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
+    return position;
 }
 AnansMemes::AnansMemes(/* args */){
 }
@@ -355,7 +355,6 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         else{
             fontOffset = font_offset[i];
         }
-        fontImageOffset[i].x = std::max(0, (int32_t)fontImageOffset[i].x - OUTLINE_SIZE);
         CopyText(fontOffset, currentFontSize, fontSzie, fontImageOffset[i]);
 
         fonts::FontAttribute pos;
@@ -366,68 +365,6 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     }
     return true;
 }
-// bool AnansChatBox::AddText(const std::wstring&text, const glm::uvec2&offset, const glm::uvec2&extent){
-//     const uint32_t line = CalcFontSize(text, extent);
-//     if(!GetFontData(currentPath + FONT_PATH + "ukai.ttc", text)){
-//         return false;
-//     }
-//     SetTextColor(text);
-//     // glm::uvec2 size = fonts.size;
-//     // size.x = mFontSize.x * text.length();
-//     // SetTextColor(mFontData, size, COMMAND_COLOR, fonts.data, glm::uvec2(mFontSize.x - 5, mFontSize.y), 0);
-//     const uint32_t mImageSize = anan.size.x * anan.size.y * anan.channels;
-//     //尝试用智能指针
-//     //auto up = std::make_unique<Foo>(42);  
-//     //auto arr = std::make_unique<int[]>(10);返回的指针支持数组索引
-//     //如果有可能，将该类分成多个功能类
-//     /*
-//         #include <memory>
-//         #include <cstdlib>
-//         int main() {
-//             // unique_ptr + free
-//             std::unique_ptr<char, decltype(&std::free)> up(
-//                 static_cast<char*>(std::malloc(256)), &std::free);
-//             // shared_ptr + free
-//             std::shared_ptr<char> sp(
-//                 static_cast<char*>(std::malloc(512)), &std::free);
-//             return 0;
-//         }
-//     */
-//     //目前只换行不改字体大小
-//     glm::uvec2 fontOffset = {}, chatOffset;
-//     uint32_t index = 0;
-//     // const uint32_t invalidPixel = GetInvalidPixelSize(text);
-//     const uint32_t fontWidth = mFontSize.x * static_cast<uint32_t>(text.length());
-//     const uint32_t chineseWidth = mFontSize.x - 5, symbolWidth = mFontSize.x / 2;
-//     auto split = ananStr::split(text, line);
-//     for (auto&it:split){
-//         const uint32_t symbolCount = countSymbols(it);
-//         const uint32_t chineseCount = it.length() - symbolCount;
-//         const uint32_t currentFontWidth = chineseCount * chineseWidth + symbolCount * symbolWidth;
-//         if(currentFontWidth >= extent.x){
-//             char message[MAX_BYTE];
-//             sprintf(message, "currentFontWidth(%d) >= extent.x(%d)", currentFontWidth, extent.x);
-//             throw std::out_of_range(message);
-//         }
-//         //判断文字以及它们的宽度是否在范围内
-//         do{
-//             chatOffset.x = offset.x + rand() % (offset.x + extent.x - offset.x);
-//             chatOffset.y = offset.y + rand() % (offset.y + extent.y - offset.y);
-//         }while(!inArea(chatOffset, glm::uvec2(currentFontWidth, mFontSize.y), offset, extent)  || isOverlapping(chatOffset, mMediaLayout));
-//         glm::uvec4 pos;
-//         pos.x = chatOffset.x;
-//         pos.y = chatOffset.y;
-//         pos.z = currentFontWidth;
-//         pos.w = mFontSize.y;
-//         mMediaLayout.push_back(pos);
-//         // chatOffset.x = offset.x + (extent.x - currentFontWidth) / 2;// + invalidPixel;
-//         // chatOffset.y = offset.y + (extent.y / 2 - line * (mFontSize.y / 2)) * (index + 1);
-//         copy(mFontData, anan.data, glm::uvec2(currentFontWidth, mFontSize.y), glm::uvec2(fontWidth, mFontSize.y), anan.size, fontOffset, chatOffset);
-//         ++index;
-//         fontOffset.x += currentFontWidth;
-//     }
-//     return true;
-// }
 
 bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, const glm::uvec2&area){
     if(doodle.data){
@@ -440,8 +377,6 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         printf("load image error, image:%s\n", image.c_str());
         return false;
     }
-    glm::uvec2 imageOffset;
-    // ananImage::calculateImageSize(extent, glm::uvec2(width, height), mImageSize);
     glm::uvec2 imageSize = ananImage::calculateImageSize(area, glm::uvec2(width, height), mLayout.size() + 1);
     doodle.channels = 4;
     doodle.size = imageSize;
@@ -462,11 +397,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         doodle.size = imageSize;
     }
 
-    const glm::uvec2 max = glm::uvec2(area.x > mFontSize ? area.x - mFontSize : 0, area.y > mFontSize ? area.y - mFontSize : 0);
-    do{
-        imageOffset.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
-        imageOffset.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
-    }while(!inArea(imageOffset, imageSize, offset, area)  || isOverlapping(imageOffset, imageSize, mLayout));
+    glm::uvec2 imageOffset = RandomPosition(offset, area, imageSize);
 
     mLayout.push_back({0, imageSize, imageOffset});
 

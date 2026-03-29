@@ -19,17 +19,18 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
     return true;
 }
 //百分比, 但要给小数
-glm::uvec2 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadScale, const std::string&current_path){
+glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale, const std::string&current_path){
     int32_t width, height, c;
     char imageName[MAX_PATH];
     sprintf(imageName, "%s%s", (current_path + IMAGE_PATH).c_str(), ananImage.c_str());
     stbi_uc *data = stbi_load(imageName, &width, &height, &c, STBI_rgb_alpha);
     if(!data){
         printf("in function %s:failed to calculation nopepad size, anan image:%s\n", __FUNCTION__, ananImage.c_str());
-        return glm::uvec2(0);
+        return glm::uvec4(0);
     }
+    const glm::uvec2 offset = glm::vec2(width, height) * notepadOffsetScale, exent = glm::vec2(width, height) * notepadSizeScale;
     stbi_image_free(data);
-    return glm::vec2(width, height) * notepadScale;
+    return glm::uvec4(offset, exent);
 }
 int32_t main(int32_t argc, char *argv[]){
     cp::CommandParameter parameter;
@@ -50,34 +51,37 @@ int32_t main(int32_t argc, char *argv[]){
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // parameter.text = L"老婆们";
-    // parameter.face = 6;
+    parameter.face = 7;
     // parameter.text = L"很晚了 大家晚安";
-    // parameter.text = L"看垃圾 的眼神";
+    parameter.text = L"看垃圾 的眼神";
     // parameter.textColor = glm::uvec3(255, 0, 0);
     // parameter.text = L"给吾辈[点赞投币]";
     // parameter.face = (uint32_t)AnansFace::Nervous;
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
-    parameter.text =L"给吾辈[倒杯茶]";
+    // parameter.text =L"给吾辈 [倒杯茶]";
     // parameter.text =L"给吾辈[闭嘴]吧";
     // parameter.text = L"吾辈[劝你]归顺[中国]吧";
-    // parameter.text = L"吾辈 劝你归顺[中华人民共和国]";
-    // parameter.text = L"比较好看的夏目安安";
+    // parameter.text = L"吾劝你归顺[中华人民共和国]";
+    // parameter.text = L"比较好看 的夏目安安";
     // parameter.image = "out.png";
     // parameter.text = L"hello word";
 #endif
     std::string ananImage = anan.GetAnansImageName((AnansFace)parameter.face);
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        offset = glm::uvec2(95, 550);
-        extent = calcNopepadSize(ananImage, glm::vec2(.775, .3125), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.4901), glm::vec2(.775, .3025), parameter.current_path);
+        offset = glm::uvec2(result.x, result.y);
+        extent = glm::uvec2(result.z, result.w);
     }
     else if(parameter.face == (uint32_t)AnansFace::Nervous){
-        offset = glm::uvec2(150, 505);
-        extent = calcNopepadSize(ananImage, glm::vec2(.7, .35), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.493), glm::vec2(.7, .35), parameter.current_path);
+        offset = glm::uvec2(result.x, result.y);
+        extent = glm::uvec2(result.z, result.w);
     }
     else{
-        offset = glm::uvec2(95, 450);
-        extent = calcNopepadSize(ananImage, glm::vec2(.625, .255), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.175, 0.694), glm::vec2(.625, .255), parameter.current_path);
+        offset = glm::uvec2(result.x, result.y);
+        extent = glm::uvec2(result.z, result.w);
     }
     if(extent == glm::uvec2(0)){
         return -1;

@@ -21,7 +21,7 @@
     }
     size_t ananStr::GetFirstPunctuationPos(const std::wstring& text) {
         for (size_t i = 0; i < text.length(); ++i) {
-            if (IsLineBreak(text[i])) {
+            if (std::iswpunct(text[i]) || text[i] == L' ') {
                 return i;
             }
         }
@@ -127,11 +127,11 @@
         for (auto&it:temp){
             auto out = splitByDelimiters(it);
             if(!out.empty()){
-                if(it[0] == '['){
-                    const uint32_t last = out.size() - 1;
-                    out[0] = L"[" + out[0];
-                    out[last] += L"]";
-                }
+                // if(it[0] == '['){
+                //     const uint32_t last = out.size() - 1;
+                //     out[0] = L"[" + out[0];
+                //     out[last] += L"]";
+                // }
                 result.insert(result.end(), out.begin(), out.end());
             }
         }

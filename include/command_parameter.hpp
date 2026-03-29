@@ -181,7 +181,7 @@ namespace cp{
         printf("\toperate:\n");
         printf("\t\t-r<angle>\tangle;rotate anan's.\n");
         printf("\t\t-n<no add hand>\twill not add hand of anan's.\n");
-        printf("\t\t-c<text color>\twill change text color;format:R,G,B.\n");
+        printf("\t\t-c<text color>\twill change text color;format:R,G,B. for explain:255,0,0\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
         printf("\t1 = normal\n");
@@ -217,9 +217,11 @@ namespace cp{
                 char delim;  // 用于读取分隔符（逗号）
                 ss >> r >> delim >> g >> delim >> b;
                 if (ss.fail()) {
-                    throw std::invalid_argument("Invalid color format. Use 'R,G,B'");
+                    parameter->textColor = glm::vec3(rand() % MAX_BYTE, rand() % MAX_BYTE, rand() % MAX_BYTE);
                 }
-                parameter->textColor = glm::vec3(r, g, b);
+                else{
+                    parameter->textColor = glm::vec3(r, g, b);
+                }
             }
             else if(opt == 'n'){
                 parameter->addHand = false;

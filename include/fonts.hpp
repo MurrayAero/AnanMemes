@@ -28,7 +28,7 @@ namespace fonts{
         
         return endX - startX;
     }
-    static inline std::vector<FontAttribute> GenerateFontBitmap(const wchar_t* text, uint32_t len, stbtt_fontinfo* info, float pixel, int outlinePixels, unsigned char* outBitmap, const glm::ivec2&bitmapSize) {
+    static inline std::vector<FontAttribute> GenerateFontBitmap(const wchar_t* text, uint32_t len, stbtt_fontinfo* info, float pixel, int outlinePixels, unsigned char* outBitmap, const glm::ivec2& bitmapSize) {
         float scale = stbtt_ScaleForPixelHeight(info, pixel);
         
         int32_t ascent, descent, lineGap;
@@ -39,7 +39,8 @@ namespace fonts{
         
         // 水平排列：从左边开始，有描边时预留左边距
         int cursorX = (outlinePixels > 0) ? outlinePixels : 0;
-        const int outline = std::max(0, outlinePixels);        
+        const int outline = std::max(0, outlinePixels);
+        
         for (uint32_t i = 0; i < len; ++i) {
             int advanceWidth, leftSideBearing;
             stbtt_GetCodepointHMetrics(info, text[i], &advanceWidth, &leftSideBearing);
@@ -47,8 +48,8 @@ namespace fonts{
             int c_x1, c_y1, c_x2, c_y2;
             stbtt_GetCodepointBitmapBox(info, text[i], scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
             
-            int glyphW = c_x2 - c_x1;
-            int glyphH = c_y2 - c_y1;
+            const int glyphW = c_x2 - c_x1;
+            const int glyphH = c_y2 - c_y1;
             
             // 计算基准位置（水平排列）
             // x: 当前光标 + 左侧 bearing
@@ -64,12 +65,18 @@ namespace fonts{
                 renderY -= outline;
             }
             
+            // 确保不超出位图边界
             renderX = std::max(0, renderX);
             renderY = std::max(0, renderY);
-
-            // 确保不超出位图底部
-            if (renderY + glyphH + outline * 2 > bitmapSize.y) {
-                renderY = std::max(0, bitmapSize.y - glyphH - outline * 2);
+            
+            // 确保不超出位图右侧
+            int totalW = glyphW + outline * 2;
+            int totalH = glyphH + outline * 2;
+            if (renderX + totalW > bitmapSize.x) {
+                renderX = std::max(0, bitmapSize.x - totalW);
+            }
+            if (renderY + totalH > bitmapSize.y) {
+                renderY = std::max(0, bitmapSize.y - totalH);
             }
             
             if (outline == 0) {
@@ -124,11 +131,8 @@ namespace fonts{
             }
             
             // 记录属性
-            int totalW = glyphW + (outline > 0 ? outline * 2 : 0);
-            int totalH = glyphH + (outline > 0 ? outline * 2 : 0);
-            
-            fontInfo[i].offset = glm::uvec2(renderX, renderY);
-            fontInfo[i].size = glm::uvec2(totalW, totalH);
+            fontInfo[i].offset = glm::uvec2(std::max(0, renderX - outlinePixels * 2), renderY);
+            fontInfo[i].size = glm::uvec2(glyphW + outlinePixels * 2, glyphH);
             fontInfo[i].advance = roundf(advanceWidth * scale);
         }
         

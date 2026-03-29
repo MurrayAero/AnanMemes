@@ -25,7 +25,7 @@
 
 #define TEXT_MARGIN 5
 
-#define OUTLINE_SIZE 3
+#define OUTLINE_SIZE 4
 
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 
