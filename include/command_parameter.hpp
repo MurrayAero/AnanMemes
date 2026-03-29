@@ -27,10 +27,9 @@ namespace cp{
         float angle = 0;
         std::wstring text;
         uint32_t face = 0;
-        //指定偏移。大小改用图片的百分比
-        bool addHand = true;//这个选项目前是用来玩的，主要用于替换其他图片
         std::string image = "";
         std::string out = "out.png";
+        std::string ananImage = "";
         std::string current_path = "";
         glm::uvec3 textColor = glm::uvec3(0);
         std::string fontFile = FONT_PATH"SourceHanSerifCN-Bold.otf";
@@ -182,6 +181,7 @@ namespace cp{
         printf("\t\t-r<angle>\tangle;rotate anan's.\n");
         printf("\t\t-n<no add hand>\twill not add hand of anan's.\n");
         printf("\t\t-c<text color>\twill change text color;format:R,G,B. for explain:255,0,0\n");
+        printf("\t\t-a<anan image>\twill change anan image\n");
         printf("face index:\n");
         printf("\t0 = happy\n");
         printf("\t1 = normal\n");
@@ -207,7 +207,7 @@ namespace cp{
         if(parameter->current_path[0] == '~'){
             parameter->current_path = getenv("HOME") + parameter->current_path.substr(1);
         }
-        while ((opt = getopt(argc, argv, "t:i:f:o:r:n:c:")) != -1){
+        while ((opt = getopt(argc, argv, "t:i:f:o:r:c:a:")) != -1){
             if(opt == 't'){
                 parameter->text = utf8_to_wstring(optarg);
             }
@@ -223,11 +223,11 @@ namespace cp{
                     parameter->textColor = glm::vec3(r, g, b);
                 }
             }
-            else if(opt == 'n'){
-                parameter->addHand = false;
-            }
             else if(opt == 'r'){
                 parameter->angle = atoi(optarg);
+            }
+            else if(opt == 'a'){
+                parameter->ananImage = optarg;
             }
             else if(opt == 'i'){
                 parameter->image = optarg;

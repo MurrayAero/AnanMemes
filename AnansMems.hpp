@@ -55,6 +55,7 @@ class AnansMemes{
     std::string fontFile;
     std::string currentPath;
     // glm::uvec2 mImageSize;
+    std::string mAnanImage = "";
     stbi_uc *mFontData = nullptr;
     AnanImage anan = {}, doodle = {}, hand = {};
     glm::uvec3 defaultTextColor = glm::uvec3(0xff * .8);
@@ -92,6 +93,9 @@ public:
 
     bool SetFace(AnansFace face);
 
+    inline void SetAnanImage(const std::string&image)noexcept{
+        mAnanImage = image;
+    }
     inline void SetFontFile(const std::string&fontFile)noexcept{
         this->fontFile = fontFile;
     }

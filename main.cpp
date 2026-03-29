@@ -19,10 +19,10 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
     return true;
 }
 //百分比, 但要给小数
-glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale, const std::string&current_path){
+glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale){
     int32_t width, height, c;
     char imageName[MAX_PATH];
-    sprintf(imageName, "%s%s", (current_path + IMAGE_PATH).c_str(), ananImage.c_str());
+    sprintf(imageName, "%s", ananImage.c_str());
     stbi_uc *data = stbi_load(imageName, &width, &height, &c, STBI_rgb_alpha);
     if(!data){
         printf("in function %s:failed to calculation nopepad size, anan image:%s\n", __FUNCTION__, ananImage.c_str());
@@ -33,6 +33,7 @@ glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadO
     return glm::uvec4(offset, exent);
 }
 int32_t main(int32_t argc, char *argv[]){
+    bool addHand = true;
     cp::CommandParameter parameter;
 #ifndef DEBUG
 #ifdef _WIN32
@@ -67,19 +68,27 @@ int32_t main(int32_t argc, char *argv[]){
     // parameter.image = "out.png";
     // parameter.text = L"hello word";
 #endif
-    std::string ananImage = anan.GetAnansImageName((AnansFace)parameter.face);
+    std::string ananImage;
+    if(parameter.ananImage != ""){
+        addHand = false;
+        ananImage = parameter.current_path + parameter.ananImage;
+        anan.SetAnanImage(ananImage);
+    }
+    else{
+        ananImage = parameter.current_path + IMAGE_PATH + anan.GetAnansImageName((AnansFace)parameter.face);
+    }
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.4901), glm::vec2(.775, .3025), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.4901), glm::vec2(.775, .3025));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
     else if(parameter.face == (uint32_t)AnansFace::Nervous){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.493), glm::vec2(.7, .35), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.493), glm::vec2(.7, .35));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
     else{
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.175, 0.694), glm::vec2(.625, .255), parameter.current_path);
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.07, 0.65), glm::vec2(.8, .35));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
@@ -97,7 +106,7 @@ int32_t main(int32_t argc, char *argv[]){
     if(parameter.text != L""){
         anan.AddText(parameter.text, offset, extent);
     }
-    if(parameter.addHand)anan.AddHand();
+    if(addHand)anan.AddHand();
 
     if(parameter.angle)anan.Rotate(parameter.angle);
 

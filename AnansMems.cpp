@@ -226,7 +226,12 @@ bool AnansMemes::GetAnanImageData(const std::string &path, AnansFace face){
     int32_t c;
     char imageName[MAX_PATH];
     std::string ananimage = GetAnansImageName(face);
-    sprintf(imageName, "%s%s", path.c_str(), ananimage.c_str());
+    if(mAnanImage != ""){
+        strcpy(imageName, mAnanImage.c_str());
+    }
+    else{
+        sprintf(imageName, "%s%s", path.c_str(), ananimage.c_str());
+    }
     stbi_uc *data = stbi_load(imageName, &anan.size.x, &anan.size.y, &c, STBI_rgb_alpha);
     if(!data){
         printf("load image error, image name %s\n", imageName);
