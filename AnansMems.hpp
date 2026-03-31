@@ -25,7 +25,7 @@
 
 #define TEXT_MARGIN 5
 
-#define OUTLINE_SIZE 4
+// #define OUTLINE_SIZE 4
 
 #define COMMAND_COLOR glm::uvec3(130, 0, 130)
 
@@ -51,12 +51,13 @@ struct AnanImage{
 };
 class AnansMemes{
     AnansFace face;
-    float mFontSize;
     std::string fontFile;
+    bool hasText = false;
     std::string currentPath;
     // glm::uvec2 mImageSize;
     std::string mAnanImage = "";
     stbi_uc *mFontData = nullptr;
+    float mFontSize, mOutlineSize;
     AnanImage anan = {}, doodle = {}, hand = {};
     glm::uvec3 defaultTextColor = glm::uvec3(0xff * .8);
 
@@ -101,6 +102,9 @@ public:
     }
     inline void SetTextColor(const glm::uvec3&color)noexcept{
         defaultTextColor = color;
+    }
+    inline void SetTextExpected()noexcept{
+        hasText = true;
     }
 };
 #endif

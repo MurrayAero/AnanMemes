@@ -52,16 +52,16 @@ int32_t main(int32_t argc, char *argv[]){
 #ifdef DEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // parameter.text = L"老婆们";
-    parameter.face = 7;
+    // parameter.face = 7;
     // parameter.text = L"很晚了 大家晚安";
-    parameter.text = L"看垃圾 的眼神";
+    // parameter.text = L"看垃圾 的眼神";
     // parameter.textColor = glm::uvec3(255, 0, 0);
     // parameter.text = L"给吾辈[点赞投币]";
     // parameter.face = (uint32_t)AnansFace::Nervous;
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈 [倒杯茶]";
-    // parameter.text =L"给吾辈[闭嘴]吧";
+    parameter.text =L"给吾辈 [闭嘴]";
     // parameter.text = L"吾辈[劝你]归顺[中国]吧";
     // parameter.text = L"吾劝你归顺[中华人民共和国]";
     // parameter.text = L"比较好看 的夏目安安";
@@ -78,17 +78,17 @@ int32_t main(int32_t argc, char *argv[]){
         ananImage = parameter.current_path + IMAGE_PATH + anan.GetAnansImageName((AnansFace)parameter.face);
     }
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.4901), glm::vec2(.775, .3025));
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.49), glm::vec2(.775, .3025));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
     else if(parameter.face == (uint32_t)AnansFace::Nervous){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.493), glm::vec2(.7, .35));
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.49), glm::vec2(.7, .35));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
     else{
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.07, 0.65), glm::vec2(.8, .35));
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.1, 0.65), glm::vec2(.75, .33));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
@@ -99,6 +99,9 @@ int32_t main(int32_t argc, char *argv[]){
     anan.SetFace((AnansFace)parameter.face);
     if(parameter.textColor != glm::uvec3(0)){
         anan.SetTextColor(parameter.textColor);
+    }
+    if(parameter.text != L""){
+        anan.SetTextExpected();
     }
     if(parameter.image != ""){
         anan.AddImage(parameter.image, offset, extent);

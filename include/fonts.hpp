@@ -131,7 +131,7 @@ namespace fonts{
             }
             
             // 记录属性
-            fontInfo[i].offset = glm::uvec2(std::max(0, renderX - outlinePixels * 2), renderY);
+            fontInfo[i].offset = glm::uvec2(std::max(0, renderX - outlinePixels), renderY);
             fontInfo[i].size = glm::uvec2(glyphW + outlinePixels * 2, glyphH);
             fontInfo[i].advance = roundf(advanceWidth * scale);
         }

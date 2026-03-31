@@ -202,7 +202,11 @@ bool AnansMemes::GetFontData(const std::string&fontPath, const std::wstring &tex
     const uint32_t fontSize = mFontSize * fontCount * mFontSize;
     stbi_uc *fontData = new stbi_uc[fontSize];
     memset(fontData, 0, fontSize);
-    fontInfo = fonts::GenerateFont(fontBuffer, glm::ivec2(mFontSize * fontCount, mFontSize), text.data(), fontCount, fontData, OUTLINE_SIZE);
+    int minOutline = 5;
+    int maxOutline = 10;
+    float outlineFactor = 50.0f;
+    mOutlineSize = std::max(minOutline, std::min(maxOutline, static_cast<int>(outlineFactor / mFontSize + 0.5f)));
+    fontInfo = fonts::GenerateFont(fontBuffer, glm::ivec2(mFontSize * fontCount, mFontSize), text.data(), fontCount, fontData, mOutlineSize);
     // stbi_write_bmp("fonttest.bmp", mFontSize * fontCount, mFontSize, 1, fontData);
     fclose(fontFile);
     mFontData = new stbi_uc[fontSize * 4];
@@ -254,6 +258,9 @@ glm::uvec2 AnansMemes::RandomPosition(const glm::uvec2 &offset, const glm::uvec2
         position.x = offset.x + (max.x > 0 ? rand() % max.x : 0);
         position.y = offset.y + (max.y > 0 ? rand() % max.y : 0);
     }while((!inArea(position, currentFontSize, offset, area) || isOverlapping(position, currentFontSize, mLayout)) && randCount < MAX_RANDOM_COUNT);
+    if(randCount >= MAX_RANDOM_COUNT){
+        printf("failed to find non-overlapping position for text after %d attempts, using last position\n", randCount);
+    }
     return position;
 }
 AnansMemes::AnansMemes(/* args */){
@@ -315,12 +322,14 @@ bool AnansMemes::AddHand(){
     return true;
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &area){
-    glm::uvec2 newExtent = area;
+    glm::uvec2 newArea = area, newOffset = offset;
+    //因为我们先加的图片，所以可以提前判断。这样导致我们必须先加图片
     bool hasImage = !mLayout.empty();
     if(hasImage){
-        newExtent.x -= doodle.size.x;
+        newArea.x -= doodle.size.x;
+        newOffset.x += doodle.size.x;
     }
-    mFontSize = calculateFontSize(newExtent, text);
+    mFontSize = calculateFontSize(newArea, text);
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
@@ -344,26 +353,20 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         }
         ++index;
     }
-    auto font_offset = layoutTexts(offset, area, textSize);
+    auto font_offset = layoutTexts(newOffset, newArea, textSize);
 
     for (uint32_t i = 0; i < split.size(); ++i){
-        if(textSize[i].x >= area.x){
+        if(textSize[i].x >= newArea.x){
             char message[MAX_BYTE];
-            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, area.x);
+            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, newArea.x);
             throw std::out_of_range(message);
         }
         const glm::uvec2 currentFontSize = glm::uvec2(textSize[i].x, mFontSize);
 
-        if(hasImage){
-            fontOffset = RandomPosition(offset, area, currentFontSize);
-        }
-        else{
-            fontOffset = font_offset[i];
-        }
-        CopyText(fontOffset, currentFontSize, fontSzie, fontImageOffset[i]);
+        CopyText(font_offset[i], currentFontSize, fontSzie, fontImageOffset[i]);
 
         fonts::FontAttribute pos;
-        pos.offset = fontOffset;
+        pos.offset = font_offset[i];
         //这个宽度和高度主要用于判断是否重叠，因此需要更准确的数据
         pos.size = glm::uvec2(textSize[i].x, fontInfo[i].size.y);
         mLayout.push_back(pos);
@@ -382,7 +385,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         printf("load image error, image:%s\n", image.c_str());
         return false;
     }
-    glm::uvec2 imageSize = ananImage::calculateImageSize(area, glm::uvec2(width, height), mLayout.size() + 1);
+    glm::uvec2 imageSize = ananImage::calculateImageSize(glm::uvec2(area.x - width * .05f, area.y - height * .5f), glm::uvec2(width, height), mLayout.size() + 1);
     doodle.channels = 4;
     doodle.size = imageSize;
     const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
@@ -402,7 +405,10 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         doodle.size = imageSize;
     }
 
-    glm::uvec2 imageOffset = RandomPosition(offset, area, imageSize);
+    glm::uvec2 imageOffset = glm::uvec2(offset.x + imageSize.x * .3f, offset.y + imageSize.y * .005f);//RandomPosition(offset, area, imageSize);
+    if(!hasText){
+        imageOffset = glm::uvec2(offset.x + (area.x - imageSize.x) / 2, offset.y + (area.y - imageSize.y) / 2);
+    }
 
     mLayout.push_back({0, imageSize, imageOffset});
 

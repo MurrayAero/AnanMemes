@@ -116,25 +116,5 @@
         if (pos == std::wstring::npos) {
             return splitEvenly(text, count);
         }
-
-        std::vector<std::wstring> result, temp;
-        if(text.find('[') != std::wstring::npos){
-            split(text, temp);
-        }
-        else{
-            return splitByDelimiters(text);
-        }
-        for (auto&it:temp){
-            auto out = splitByDelimiters(it);
-            if(!out.empty()){
-                // if(it[0] == '['){
-                //     const uint32_t last = out.size() - 1;
-                //     out[0] = L"[" + out[0];
-                //     out[last] += L"]";
-                // }
-                result.insert(result.end(), out.begin(), out.end());
-            }
-        }
-        if(result.empty())result.push_back(text);
-        return result;
+        return splitByDelimiters(text);
     }
