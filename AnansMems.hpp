@@ -55,11 +55,11 @@ class AnansMemes{
     bool hasText = false;
     std::string currentPath;
     // glm::uvec2 mImageSize;
+    glm::uvec3 defaultTextColor;
     std::string mAnanImage = "";
     stbi_uc *mFontData = nullptr;
-    float mFontSize, mOutlineSize;
+    float mFontSize, mOutlineSize = 0;
     AnanImage anan = {}, doodle = {}, hand = {};
-    glm::uvec3 defaultTextColor = glm::uvec3(0xff * .8);
 
     std::vector<fonts::FontAttribute>mLayout;
     

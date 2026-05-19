@@ -88,7 +88,7 @@ int32_t main(int32_t argc, char *argv[]){
         extent = glm::uvec2(result.z, result.w);
     }
     else{
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.1, 0.65), glm::vec2(.75, .33));
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.1, 0.67), glm::vec2(.75, .33));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
@@ -96,10 +96,8 @@ int32_t main(int32_t argc, char *argv[]){
         return -1;
     }
     anan.SetFontFile(parameter.fontFile);
+    anan.SetTextColor(parameter.textColor);
     anan.SetFace((AnansFace)parameter.face);
-    if(parameter.textColor != glm::uvec3(0)){
-        anan.SetTextColor(parameter.textColor);
-    }
     if(parameter.text != L""){
         anan.SetTextExpected();
     }

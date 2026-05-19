@@ -31,8 +31,8 @@ namespace cp{
         std::string out = "out.png";
         std::string ananImage = "";
         std::string current_path = "";
-        glm::uvec3 textColor = glm::uvec3(0);
-        std::string fontFile = FONT_PATH"SourceHanSerifCN-Bold.otf";
+        glm::uvec3 textColor = glm::uvec3(1);
+        std::string fontFile = FONT_PATH"PinRuShouXieTi-1.ttf";
     };
 #ifdef _WIN32
     int32_t find_short_option(char c, const char* optstring) {
@@ -214,7 +214,7 @@ namespace cp{
             else if(opt == 'c'){
                 std::stringstream ss(optarg);
                 float r, g, b;
-                char delim;  // 用于读取分隔符（逗号）
+                char delim;  // 用于读取分隔符
                 ss >> r >> delim >> g >> delim >> b;
                 if (ss.fail()) {
                     parameter->textColor = glm::vec3(rand() % MAX_BYTE, rand() % MAX_BYTE, rand() % MAX_BYTE);

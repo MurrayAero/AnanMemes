@@ -202,10 +202,11 @@ bool AnansMemes::GetFontData(const std::string&fontPath, const std::wstring &tex
     const uint32_t fontSize = mFontSize * fontCount * mFontSize;
     stbi_uc *fontData = new stbi_uc[fontSize];
     memset(fontData, 0, fontSize);
-    int minOutline = 5;
-    int maxOutline = 10;
-    float outlineFactor = 50.0f;
-    mOutlineSize = std::max(minOutline, std::min(maxOutline, static_cast<int>(outlineFactor / mFontSize + 0.5f)));
+    //禁用描边效果
+    // int minOutline = 5;
+    // int maxOutline = 10;
+    // float outlineFactor = 50.0f;
+    // mOutlineSize = std::max(minOutline, std::min(maxOutline, static_cast<int>(outlineFactor / mFontSize + 0.5f)));
     fontInfo = fonts::GenerateFont(fontBuffer, glm::ivec2(mFontSize * fontCount, mFontSize), text.data(), fontCount, fontData, mOutlineSize);
     // stbi_write_bmp("fonttest.bmp", mFontSize * fontCount, mFontSize, 1, fontData);
     fclose(fontFile);
@@ -329,7 +330,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         newArea.x -= doodle.size.x;
         newOffset.x += doodle.size.x;
     }
-    mFontSize = calculateFontSize(newArea, text);
+    mFontSize = calculateFontSize(newArea, text) * .9f;
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
