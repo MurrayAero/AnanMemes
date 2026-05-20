@@ -98,6 +98,7 @@ int32_t main(int32_t argc, char *argv[]){
     anan.SetFontFile(parameter.fontFile);
     anan.SetTextColor(parameter.textColor);
     anan.SetFace((AnansFace)parameter.face);
+    if(parameter.enableOutline)anan.EnableOutline();
     if(parameter.text != L""){
         anan.SetTextExpected();
     }

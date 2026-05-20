@@ -202,11 +202,12 @@ bool AnansMemes::GetFontData(const std::string&fontPath, const std::wstring &tex
     const uint32_t fontSize = mFontSize * fontCount * mFontSize;
     stbi_uc *fontData = new stbi_uc[fontSize];
     memset(fontData, 0, fontSize);
-    //禁用描边效果
-    // int minOutline = 5;
-    // int maxOutline = 10;
-    // float outlineFactor = 50.0f;
-    // mOutlineSize = std::max(minOutline, std::min(maxOutline, static_cast<int>(outlineFactor / mFontSize + 0.5f)));
+    if(mEnableOutline){
+        int minOutline = 5;
+        int maxOutline = 10;
+        float outlineFactor = 50.0f;
+        mOutlineSize = std::max(minOutline, std::min(maxOutline, static_cast<int>(outlineFactor / mFontSize + 0.5f)));
+    }
     fontInfo = fonts::GenerateFont(fontBuffer, glm::ivec2(mFontSize * fontCount, mFontSize), text.data(), fontCount, fontData, mOutlineSize);
     // stbi_write_bmp("fonttest.bmp", mFontSize * fontCount, mFontSize, 1, fontData);
     fclose(fontFile);
@@ -324,13 +325,13 @@ bool AnansMemes::AddHand(){
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &area){
     glm::uvec2 newArea = area, newOffset = offset;
-    //因为我们先加的图片，所以可以提前判断。这样导致我们必须先加图片
+    //因为我们先加的图片，所以可以提前判断。坏处就是必须先加图片
     bool hasImage = !mLayout.empty();
     if(hasImage){
         newArea.x -= doodle.size.x;
         newOffset.x += doodle.size.x;
     }
-    mFontSize = calculateFontSize(newArea, text) * .9f;
+    mFontSize = calculateFontSize(newArea, text) * (mEnableOutline?1:.9f);
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }

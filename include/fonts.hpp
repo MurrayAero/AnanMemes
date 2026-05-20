@@ -138,7 +138,6 @@ namespace fonts{
         
         return fontInfo;
     }
-
     static inline std::vector<FontAttribute> GenerateFont(const unsigned char *fontData, const glm::ivec2&size, const wchar_t word[], uint32_t len, unsigned char *out, int outlinePixels = 0){
         stbtt_fontinfo info;
         int offset = stbtt_GetFontOffsetForIndex(fontData, 0);

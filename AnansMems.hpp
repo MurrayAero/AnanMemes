@@ -57,6 +57,7 @@ class AnansMemes{
     // glm::uvec2 mImageSize;
     glm::uvec3 defaultTextColor;
     std::string mAnanImage = "";
+    bool mEnableOutline = false;
     stbi_uc *mFontData = nullptr;
     float mFontSize, mOutlineSize = 0;
     AnanImage anan = {}, doodle = {}, hand = {};
@@ -93,6 +94,10 @@ public:
     int32_t SaveImage(const std::string &image);
 
     bool SetFace(AnansFace face);
+
+    inline void EnableOutline()noexcept{
+        mEnableOutline = true;
+    }
 
     inline void SetAnanImage(const std::string&image)noexcept{
         mAnanImage = image;

@@ -30,6 +30,7 @@ namespace cp{
         std::string image = "";
         std::string out = "out.png";
         std::string ananImage = "";
+        bool enableOutline = false;
         std::string current_path = "";
         glm::uvec3 textColor = glm::uvec3(1);
         std::string fontFile = FONT_PATH"PinRuShouXieTi-1.ttf";
@@ -228,6 +229,9 @@ namespace cp{
             }
             else if(opt == 'a'){
                 parameter->ananImage = optarg;
+                //如果换了其他图片, 那还是保留描边效果
+                parameter->enableOutline = true;
+                parameter->textColor = glm::vec3(MAX_BYTE * .8);
             }
             else if(opt == 'i'){
                 parameter->image = optarg;
