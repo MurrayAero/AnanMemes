@@ -52,7 +52,6 @@ struct AnanImage{
 class AnansMemes{
     AnansFace face;
     std::string fontFile;
-    bool hasText = false;
     std::string currentPath;
     // glm::uvec2 mImageSize;
     glm::uvec3 defaultTextColor;
@@ -107,9 +106,6 @@ public:
     }
     inline void SetTextColor(const glm::uvec3&color)noexcept{
         defaultTextColor = color;
-    }
-    inline void SetTextExpected()noexcept{
-        hasText = true;
     }
 };
 #endif

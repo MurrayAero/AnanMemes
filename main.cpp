@@ -8,8 +8,8 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
         cp::help(argc, argv);
         return false;
     }
-    if(parameter->text == L"" && parameter->image == "" && parameter->face < (uint32_t)AnansFace::Nervous){
-        parameter->text = L"你忘记添加文本了";
+    if(parameter->text == L"" && parameter->image == ""){
+        parameter->text = L"你忘记 添加文本了";
     }
     parameter->text = ananStr::fixBrackets(parameter->text);
     if(parameter->face > (uint32_t)AnansFace::Nervous){
@@ -61,7 +61,8 @@ int32_t main(int32_t argc, char *argv[]){
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈 [倒杯茶]";
-    parameter.text =L"给吾辈 [闭嘴]";
+    parameter.text =L"给吾辈 【闭嘴】";
+    // parameter.text =L"给吾辈 [闭嘴]";
     // parameter.text = L"吾辈[劝你]归顺[中国]吧";
     // parameter.text = L"吾劝你归顺[中华人民共和国]";
     // parameter.text = L"比较好看 的夏目安安";
@@ -88,7 +89,7 @@ int32_t main(int32_t argc, char *argv[]){
         extent = glm::uvec2(result.z, result.w);
     }
     else{
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.1, 0.67), glm::vec2(.75, .33));
+        auto result = calcNopepadSize(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.6, .30));
         offset = glm::uvec2(result.x, result.y);
         extent = glm::uvec2(result.z, result.w);
     }
@@ -99,13 +100,12 @@ int32_t main(int32_t argc, char *argv[]){
     anan.SetTextColor(parameter.textColor);
     anan.SetFace((AnansFace)parameter.face);
     if(parameter.enableOutline)anan.EnableOutline();
-    if(parameter.text != L""){
-        anan.SetTextExpected();
-    }
     if(parameter.image != ""){
+        if(parameter.text != L"")extent.x *= .5f;
         anan.AddImage(parameter.image, offset, extent);
     }
     if(parameter.text != L""){
+        if(parameter.image != "")offset.x += extent.x;
         anan.AddText(parameter.text, offset, extent);
     }
     if(addHand)anan.AddHand();

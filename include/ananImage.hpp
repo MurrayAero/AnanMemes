@@ -64,64 +64,16 @@ namespace ananImage{
 	        min.y = std::min(min.y, rotated.y);
 			max.y = std::max(max.y, rotated.y);
 		}
-            
 		return glm::uvec2(std::ceil(max.x - min.x), std::ceil(max.y - min.y));
 	}
-    glm::vec2 calculateImageSize(const glm::vec2& extent, const glm::vec2& imageSize, uint32_t imageCount) {
-        if (extent.x <= 0 || extent.y <= 0 || imageSize.x <= 0 || imageSize.y <= 0 || imageCount == 0) {
-            return glm::vec2(0.0f);
+    glm::uvec2 calculateImageSize(const glm::vec2& extent, const glm::vec2& imageSize) {
+        if (extent.x <= 0 || extent.y <= 0 || imageSize.x <= 0 || imageSize.y <= 0) {
+            return glm::uvec2(0.0f);
         }
-        else if (imageCount == 1) {
-            float widthRatio = extent.x / imageSize.x;
-            float heightRatio = extent.y / imageSize.y;
-            float scale = glm::min(widthRatio, heightRatio);
-            return imageSize * scale;
-        }
-
-        glm::vec2 bestSize(0.0f);
-        float maxArea = 0.0f;
-
-        for (uint32_t rows = 1; rows <= imageCount; ++rows) {
-            uint32_t cols = (imageCount + rows - 1) / rows; // 向上取整
-            
-            float cellWidth = extent.x / cols;
-            float cellHeight = extent.y / rows;
-            
-            // 计算在此单元格内能缩放的最大尺寸（保持宽高比）
-            float widthRatio = cellWidth / imageSize.x;
-            float heightRatio = cellHeight / imageSize.y;
-            float scale = glm::min(widthRatio, heightRatio);
-            
-            glm::vec2 scaledSize = imageSize * scale;
-            float area = scaledSize.x * scaledSize.y;
-            
-            // 选择能获得最大图片面积的布局
-            if (area > maxArea) {
-                maxArea = area;
-                bestSize = scaledSize;
-            }
-            
-            // 对称性：也尝试交换行列（当可能时）
-            uint32_t altRows = cols;
-            uint32_t altCols = rows;
-            if (altRows * altCols >= imageCount && altRows <= imageCount) {
-                float altCellWidth = extent.x / altCols;
-                float altCellHeight = extent.y / altRows;
-                float altWidthRatio = altCellWidth / imageSize.x;
-                float altHeightRatio = altCellHeight / imageSize.y;
-                float altScale = glm::min(altWidthRatio, altHeightRatio);
-                
-                glm::vec2 altScaledSize = imageSize * altScale;
-                float altArea = altScaledSize.x * altScaledSize.y;
-                
-                if (altArea > maxArea) {
-                    maxArea = altArea;
-                    bestSize = altScaledSize;
-                }
-            }
-        }
-
-        return bestSize;
+        float scaleX = extent.x / imageSize.x;
+        float scaleY = extent.y / imageSize.y;
+        float scale = glm::min(scaleX, scaleY);
+        return imageSize * scale;
     }
     static inline void removeInvalidPixel(unsigned char *data, const glm::uvec2&size, const glm::uvec3&pixel){
         for (uint32_t i = 0; i < size.x * size.y; ++i){

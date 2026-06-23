@@ -324,14 +324,16 @@ bool AnansMemes::AddHand(){
     return true;
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &area){
-    glm::uvec2 newArea = area, newOffset = offset;
-    //因为我们先加的图片，所以可以提前判断。坏处就是必须先加图片
-    bool hasImage = !mLayout.empty();
-    if(hasImage){
-        newArea.x -= doodle.size.x;
-        newOffset.x += doodle.size.x;
+    float scaleFactor = 1.0f;
+    if(!mEnableOutline){
+        if(face == AnansFace::Tsundere){
+            scaleFactor = 0.7f;
+        }
+        else{
+            scaleFactor = 0.9f;
+        }
     }
-    mFontSize = calculateFontSize(newArea, text) * (mEnableOutline?1:.9f);
+    mFontSize = calculateFontSize(area, text) * scaleFactor;
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
@@ -341,7 +343,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     std::vector<glm::uvec2>fontImageOffset;
     uint32_t index = 0, currentFontIndex = 0;
     const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, area);
-    glm::uvec2 fontOffset, fontSzie = glm::uvec2(fontWidth, mFontSize);
+    glm::uvec2 fontSzie = glm::uvec2(fontWidth, mFontSize);
 
     auto split = ananStr::split(text, line);
 
@@ -355,12 +357,12 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
         }
         ++index;
     }
-    auto font_offset = layoutTexts(newOffset, newArea, textSize);
+    auto font_offset = layoutTexts(offset, area, textSize);
 
     for (uint32_t i = 0; i < split.size(); ++i){
-        if(textSize[i].x >= newArea.x){
+        if(textSize[i].x >= area.x){
             char message[MAX_BYTE];
-            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, newArea.x);
+            sprintf(message, "textSize[%d].x(%d) >= extent.x(%d)", i, textSize[i].x, area.x);
             throw std::out_of_range(message);
         }
         const glm::uvec2 currentFontSize = glm::uvec2(textSize[i].x, mFontSize);
@@ -387,18 +389,16 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         printf("load image error, image:%s\n", image.c_str());
         return false;
     }
-    glm::uvec2 imageSize = ananImage::calculateImageSize(glm::uvec2(area.x - width * .05f, area.y - height * .5f), glm::uvec2(width, height), mLayout.size() + 1);
+    glm::uvec2 imageSize = ananImage::calculateImageSize(area, glm::uvec2(width, height));
     doodle.channels = 4;
     doodle.size = imageSize;
     const uint32_t uImageSize = imageSize.x * imageSize.y * doodle.channels;
     doodle.data = new stbi_uc[uImageSize];
 
-    if(imageSize != glm::uvec2(width, height)){
-        stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
-    }
+    stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
 
     if(face >= AnansFace::Tsundere){
-        const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE;
+        const float angle = (face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE);
         imageSize = ananImage::calculateRotatedSize(angle, imageSize);
         stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];
         ananImage::rotate(doodle.data, doodle.size, angle, temp, imageSize);
@@ -407,10 +407,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
         doodle.size = imageSize;
     }
 
-    glm::uvec2 imageOffset = glm::uvec2(offset.x + imageSize.x * .3f, offset.y + imageSize.y * .005f);//RandomPosition(offset, area, imageSize);
-    if(!hasText){
-        imageOffset = glm::uvec2(offset.x + (area.x - imageSize.x) / 2, offset.y + (area.y - imageSize.y) / 2);
-    }
+    glm::uvec2 imageOffset = glm::uvec2(offset.x + (area.x - imageSize.x) / 2, offset.y + (area.y - imageSize.y) / 2);
 
     mLayout.push_back({0, imageSize, imageOffset});
 
@@ -454,11 +451,14 @@ void AnansMemes::SetTextColor(const std::wstring&text){
     uint32_t currentFontInfo = 0, offset = fontInfo[0].offset.x;
 
     ananStr::split(text, split);
+    if(split.empty()){
+        split.push_back(text);
+    }
     size.y = mFontSize;
     fontSize.y = mFontSize;
     fontSize.x = mFontSize * text.length();
     for (auto&it:split){
-        if(it[0] == L'['){
+        if(it[0] == L'[' || it[0] == L'【'){
             color = COMMAND_COLOR;
         }
         else{

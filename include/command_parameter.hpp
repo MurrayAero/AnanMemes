@@ -32,7 +32,7 @@ namespace cp{
         std::string ananImage = "";
         bool enableOutline = false;
         std::string current_path = "";
-        glm::uvec3 textColor = glm::uvec3(1);
+        glm::uvec3 textColor = glm::uvec3(2);
         std::string fontFile = FONT_PATH"PinRuShouXieTi-1.ttf";
     };
 #ifdef _WIN32
@@ -194,7 +194,6 @@ namespace cp{
         printf("\t7 = Nervous\n");
         printf("explain:\n");
         printf("\tuse -t, -i, or both.\n");
-        printf("\tenglish delimiters only.\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;

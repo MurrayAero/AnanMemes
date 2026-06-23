@@ -107,7 +107,9 @@
         size_t pos = 0;
         while (pos < text.length()) {
             size_t closeBracket = split(text, ']', out, split(text, '[', out, pos));
-            out[out.size() - 1] += L"]";
+            if(!out.empty()){
+                out[out.size() - 1] += L"]";
+            }
             pos = closeBracket + 1;
         }
     }
