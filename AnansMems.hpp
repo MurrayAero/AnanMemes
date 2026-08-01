@@ -20,7 +20,7 @@
 #endif
 #define MAX_RANDOM_COUNT 500
 
-#define NERVOUS_ANAN_ANGLE -11
+#define BODY_ANAN_ANGLE -10
 #define TSUNDERE_ANAN_ANGLE -15
 
 #define TEXT_MARGIN 5
@@ -41,8 +41,10 @@ enum class AnansFace{
     Blush,
     Angry,
     Speechless,
+    Mutsumi,
     Tsundere,
-    Nervous
+    Body,
+    Max_Face
 };
 struct AnanImage{
     stbi_uc *data;

@@ -190,8 +190,9 @@ namespace cp{
         printf("\t3 = blush\n");
         printf("\t4 = angry\n");
         printf("\t5 = speechless\n");
-        printf("\t6 = tsundere\n");
-        printf("\t7 = Nervous\n");
+        printf("\t6 = mutsumi\n");
+        printf("\t7 = tsundere\n");
+        printf("\t8 = Body\n");
         printf("explain:\n");
         printf("\tuse -t, -i, or both.\n");
     }

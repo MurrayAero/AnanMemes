@@ -12,14 +12,14 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
         parameter->text = L"你忘记 添加文本了";
     }
     parameter->text = ananStr::fixBrackets(parameter->text);
-    if(parameter->face > (uint32_t)AnansFace::Nervous){
-        printf("invalid face index(%d), max face index is %d. used random face\n", parameter->face, AnansFace::Nervous);
-        parameter->face = rand() % ((uint32_t)AnansFace::Nervous + 1);
+    if(parameter->face >= (uint32_t)AnansFace::Max_Face){
+        printf("invalid face index(%d), max face index is %d. used random face\n", parameter->face, AnansFace::Max_Face);
+        parameter->face = rand() % (uint32_t)AnansFace::Max_Face;
     }
     return true;
 }
 //百分比, 但要给小数
-glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale){
+glm::uvec4 GetNopepadInfo(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale){
     int32_t width, height, c;
     char imageName[MAX_PATH];
     sprintf(imageName, "%s", ananImage.c_str());
@@ -35,7 +35,7 @@ glm::uvec4 calcNopepadSize(const std::string&ananImage, const glm::vec2&notepadO
 int32_t main(int32_t argc, char *argv[]){
     bool addHand = true;
     cp::CommandParameter parameter;
-#ifndef DEBUG
+#ifdef NDEBUG
 #ifdef _WIN32
     srand(time(nullptr));
     setlocale(LC_ALL, "en_US.UTF-8");
@@ -49,7 +49,7 @@ int32_t main(int32_t argc, char *argv[]){
     AnansMemes anan(parameter.current_path);
     //TODO:写一个自动获取记笔记偏移和大小的功能
     glm::uvec2 offset, extent;
-#ifdef DEBUG
+#ifndef NDEBUG
     // parameter.face = (uint32_t)AnansFace::Tsundere;
     // parameter.text = L"老婆们";
     // parameter.face = 7;
@@ -57,7 +57,7 @@ int32_t main(int32_t argc, char *argv[]){
     // parameter.text = L"看垃圾 的眼神";
     // parameter.textColor = glm::uvec3(255, 0, 0);
     // parameter.text = L"给吾辈[点赞投币]";
-    // parameter.face = (uint32_t)AnansFace::Nervous;
+    // parameter.face = (uint32_t)AnansFace::Body;
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈 [倒杯茶]";
@@ -78,21 +78,24 @@ int32_t main(int32_t argc, char *argv[]){
     else{
         ananImage = parameter.current_path + IMAGE_PATH + anan.GetAnansImageName((AnansFace)parameter.face);
     }
+    glm::uvec4 nopepad;
     if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.112, 0.49), glm::vec2(.775, .3025));
-        offset = glm::uvec2(result.x, result.y);
-        extent = glm::uvec2(result.z, result.w);
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(0.112, 0.49), glm::vec2(.775, .3025));
     }
-    else if(parameter.face == (uint32_t)AnansFace::Nervous){
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.15, 0.49), glm::vec2(.7, .35));
-        offset = glm::uvec2(result.x, result.y);
-        extent = glm::uvec2(result.z, result.w);
+    else if(parameter.face == (uint32_t)AnansFace::Body){
+        addHand = false;
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.15, 0), glm::vec2(.25, .425));
+        // nopepad = GetNopepadInfo(ananImage, glm::vec2(0.15, 0.05), glm::vec2(.3, .6));
+    }
+    else if(parameter.face == (uint32_t)AnansFace::Mutsumi){
+        addHand = false;
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .5));
     }
     else{
-        auto result = calcNopepadSize(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.6, .30));
-        offset = glm::uvec2(result.x, result.y);
-        extent = glm::uvec2(result.z, result.w);
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.65, .30));
     }
+    offset = glm::uvec2(nopepad.x, nopepad.y);
+    extent = glm::uvec2(nopepad.z, nopepad.w);
     if(extent == glm::uvec2(0)){
         return -1;
     }

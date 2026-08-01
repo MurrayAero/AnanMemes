@@ -13,11 +13,11 @@ LIBS       :=
 SRC := $(wildcard $(SRC_DIR)/*.cpp)
 OBJ := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
 
-MACRO :=
+MACRO := -DNDEBUG
 
 .PHONY: all clean run debug
 
-all: MACRO :=
+all: MACRO := -DNDEBUG
 all: $(BIN)
 
 debug: MACRO := -DDEBUG

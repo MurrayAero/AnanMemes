@@ -142,7 +142,7 @@ std::vector<glm::uvec2> layoutTexts(const glm::uvec2& offset, const glm::uvec2& 
 void AnansMemes::CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &currentFontSize, const glm::uvec2&fontSzie, const glm::uvec2&fontImageOffset){
     const glm::uvec2 cutSize = glm::uvec2(currentFontSize.x, mFontSize);
     if(face >= AnansFace::Tsundere){
-        const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE;
+        const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:BODY_ANAN_ANGLE;
         glm::ivec2 new_size = ananImage::calculateRotatedSize(angle, cutSize);
         const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
         stbi_uc *font_data = new stbi_uc[font_data_size], *new_data = new stbi_uc[new_data_size];
@@ -177,8 +177,10 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "Speechless.png";
     case AnansFace::Tsundere:
         return "Tsundere.png";
-    case AnansFace::Nervous:
-        return "Nervous.jpg";
+    case AnansFace::Body:
+        return "Body.png";
+    case AnansFace::Mutsumi:
+        return "Mutsumi.jpg";
     default:
         break;
     }
@@ -303,9 +305,6 @@ bool AnansMemes::AddHand(){
     if(face == AnansFace::Tsundere){
         sprintf(imageName, "%s%sHand_Tsundere.png", currentPath.c_str(), IMAGE_PATH);
     }
-    else if(face == AnansFace::Nervous){
-        sprintf(imageName, "%s%sHand_Nervous.png", currentPath.c_str(), IMAGE_PATH);
-    }
     else{
         sprintf(imageName, "%s%sHand.png", currentPath.c_str(), IMAGE_PATH);
     }
@@ -324,16 +323,7 @@ bool AnansMemes::AddHand(){
     return true;
 }
 bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, const glm::uvec2 &area){
-    float scaleFactor = 1.0f;
-    if(!mEnableOutline){
-        if(face == AnansFace::Tsundere){
-            scaleFactor = 0.7f;
-        }
-        else{
-            scaleFactor = 0.9f;
-        }
-    }
-    mFontSize = calculateFontSize(area, text) * scaleFactor;
+    mFontSize = calculateFontSize(area, text);
     if(!GetFontData(currentPath + fontFile, text)){
         return false;
     }
@@ -342,7 +332,7 @@ bool AnansMemes::AddText(const std::wstring &text, const glm::uvec2 &offset, con
     //放置文本
     std::vector<glm::uvec2>fontImageOffset;
     uint32_t index = 0, currentFontIndex = 0;
-    const uint32_t fontWidth = mFontSize * static_cast<uint32_t>(text.length()), line = GetLine(text, mFontSize, area);
+    const uint32_t fontWidth = mFontSize * text.length(), line = GetLine(text, mFontSize, area);
     glm::uvec2 fontSzie = glm::uvec2(fontWidth, mFontSize);
 
     auto split = ananStr::split(text, line);
@@ -398,7 +388,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
     stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
 
     if(face >= AnansFace::Tsundere){
-        const float angle = (face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:NERVOUS_ANAN_ANGLE);
+        const float angle = (face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:BODY_ANAN_ANGLE);
         imageSize = ananImage::calculateRotatedSize(angle, imageSize);
         stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];
         ananImage::rotate(doodle.data, doodle.size, angle, temp, imageSize);
