@@ -42,6 +42,7 @@ enum class AnansFace{
     Angry,
     Speechless,
     Mutsumi,
+    Hiro,
     Tsundere,
     Body,
     Max_Face

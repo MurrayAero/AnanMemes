@@ -181,6 +181,8 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "Body.png";
     case AnansFace::Mutsumi:
         return "Mutsumi.jpg";
+    case AnansFace::Hiro:
+        return "Hiro.jpg";
     default:
         break;
     }

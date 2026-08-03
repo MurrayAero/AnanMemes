@@ -18,7 +18,7 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
     }
     return true;
 }
-//百分比, 但要给小数
+//百分比
 glm::uvec4 GetNopepadInfo(const std::string&ananImage, const glm::vec2&notepadOffsetScale, const glm::vec2&notepadSizeScale){
     int32_t width, height, c;
     char imageName[MAX_PATH];
@@ -89,7 +89,11 @@ int32_t main(int32_t argc, char *argv[]){
     }
     else if(parameter.face == (uint32_t)AnansFace::Mutsumi){
         addHand = false;
-        nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .5));
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .45));
+    }
+    else if(parameter.face == (uint32_t)AnansFace::Hiro){
+        addHand = false;
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.1, 0), glm::vec2(.5, .45));
     }
     else{
         nopepad = GetNopepadInfo(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.65, .30));

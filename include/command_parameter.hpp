@@ -172,6 +172,7 @@ namespace cp{
     static inline void help(int32_t argc, char *argv[]){
         printf("usage:[-t text] [-i image] [-f face] [-o output image]\n");
         printf("example:-t\"input text\" -i input.png -f6 -o out.png\n");
+        printf("\tuse -t, -i, or both.\n");
         printf("option:\n");
         printf("\tbase:\n");
         printf("\t\t-t<text>\ttext on anan's notepad.\n");
@@ -193,8 +194,6 @@ namespace cp{
         printf("\t6 = mutsumi\n");
         printf("\t7 = tsundere\n");
         printf("\t8 = Body\n");
-        printf("explain:\n");
-        printf("\tuse -t, -i, or both.\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
