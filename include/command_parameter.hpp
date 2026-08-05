@@ -26,14 +26,14 @@ namespace cp{
     struct CommandParameter{
         float angle = 0;
         std::wstring text;
-        uint32_t face = 0;
         std::string image = "";
+        std::string fontFile = "";
         std::string out = "out.png";
         std::string ananImage = "";
         bool enableOutline = false;
         std::string current_path = "";
+        AnansFace face = AnansFace::Happy;
         glm::uvec3 textColor = glm::uvec3(2);
-        std::string fontFile = FONT_PATH"PinRuShouXieTi-1.ttf";
     };
 #ifdef _WIN32
     int32_t find_short_option(char c, const char* optstring) {
@@ -191,9 +191,10 @@ namespace cp{
         printf("\t3 = blush\n");
         printf("\t4 = angry\n");
         printf("\t5 = speechless\n");
-        printf("\t6 = mutsumi\n");
-        printf("\t7 = tsundere\n");
-        printf("\t8 = Body\n");
+        printf("\t6 = tsundere\n");
+        printf("\t7 = mutsumi\n");
+        printf("\t8 = mortis\n");
+        printf("\t9 = Hiro\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
@@ -237,11 +238,11 @@ namespace cp{
             }
             else if(opt == 'f'){
                 const uint32_t faceIndex = atoi(optarg);
-                if(strlen(optarg) > 5){
+                if(strlen(optarg) > 3){
                     parameter->fontFile = optarg;
                 }
                 else{
-                    parameter->face = faceIndex;
+                    parameter->face = (AnansFace)faceIndex;
                 }
             }
             else if(opt == 'o'){

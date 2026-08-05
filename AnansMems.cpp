@@ -141,7 +141,7 @@ std::vector<glm::uvec2> layoutTexts(const glm::uvec2& offset, const glm::uvec2& 
 }
 void AnansMemes::CopyText(const glm::uvec2&fontOffset, const glm::uvec2 &currentFontSize, const glm::uvec2&fontSzie, const glm::uvec2&fontImageOffset){
     const glm::uvec2 cutSize = glm::uvec2(currentFontSize.x, mFontSize);
-    if(face >= AnansFace::Tsundere){
+    if(face == AnansFace::Tsundere){
         const float angle = face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:BODY_ANAN_ANGLE;
         glm::ivec2 new_size = ananImage::calculateRotatedSize(angle, cutSize);
         const uint32_t font_data_size = cutSize.x * cutSize.y * 4, new_data_size = new_size.x * new_size.y * 4;
@@ -177,10 +177,10 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "Speechless.png";
     case AnansFace::Tsundere:
         return "Tsundere.png";
-    case AnansFace::Body:
-        return "Body.png";
     case AnansFace::Mutsumi:
         return "Mutsumi.jpg";
+    case AnansFace::Mortis:
+        return "Mortis.jpg";
     case AnansFace::Hiro:
         return "Hiro.jpg";
     default:
@@ -389,7 +389,7 @@ bool AnansMemes::AddImage(const std::string &image, const glm::uvec2&offset, con
 
     stbir_resize(data, width, height, 0, doodle.data, imageSize.x, imageSize.y, 0, STBIR_RGBA, STBIR_TYPE_UINT8, STBIR_EDGE_CLAMP, STBIR_FILTER_CATMULLROM);
 
-    if(face >= AnansFace::Tsundere){
+    if(face == AnansFace::Tsundere){
         const float angle = (face == AnansFace::Tsundere?TSUNDERE_ANAN_ANGLE:BODY_ANAN_ANGLE);
         imageSize = ananImage::calculateRotatedSize(angle, imageSize);
         stbi_uc *temp = new stbi_uc[imageSize.x * imageSize.y * doodle.channels];

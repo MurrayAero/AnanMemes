@@ -41,10 +41,10 @@ enum class AnansFace{
     Blush,
     Angry,
     Speechless,
-    Mutsumi,
-    Hiro,
     Tsundere,
-    Body,
+    Mutsumi,
+    Mortis,
+    Hiro,
     Max_Face
 };
 struct AnanImage{
@@ -54,7 +54,6 @@ struct AnanImage{
 };
 class AnansMemes{
     AnansFace face;
-    std::string fontFile;
     std::string currentPath;
     // glm::uvec2 mImageSize;
     glm::uvec3 defaultTextColor;
@@ -63,6 +62,7 @@ class AnansMemes{
     stbi_uc *mFontData = nullptr;
     float mFontSize, mOutlineSize = 0;
     AnanImage anan = {}, doodle = {}, hand = {};
+    std::string fontFile = FONT_PATH"QingSongShouXieTi1-2.ttf";
 
     std::vector<fonts::FontAttribute>mLayout;
     

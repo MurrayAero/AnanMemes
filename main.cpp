@@ -12,9 +12,9 @@ bool prepare_command_parameter(int32_t argc, char *argv[], cp::CommandParameter 
         parameter->text = L"你忘记 添加文本了";
     }
     parameter->text = ananStr::fixBrackets(parameter->text);
-    if(parameter->face >= (uint32_t)AnansFace::Max_Face){
+    if(parameter->face >= AnansFace::Max_Face){
         printf("invalid face index(%d), max face index is %d. used random face\n", parameter->face, AnansFace::Max_Face);
-        parameter->face = rand() % (uint32_t)AnansFace::Max_Face;
+        parameter->face = (AnansFace)(rand() % (uint32_t)AnansFace::Max_Face);
     }
     return true;
 }
@@ -61,10 +61,7 @@ int32_t main(int32_t argc, char *argv[]){
     // parameter.text = L"补全功能[是,否[正常?";
     // parameter.text = ananStr::fixBrackets(parameter.text);
     // parameter.text =L"给吾辈 [倒杯茶]";
-    parameter.text =L"给吾辈 【闭嘴】";
-    // parameter.text =L"给吾辈 [闭嘴]";
-    // parameter.text = L"吾辈[劝你]归顺[中国]吧";
-    // parameter.text = L"吾劝你归顺[中华人民共和国]";
+    parameter.text =L"给吾辈 [闭嘴]";
     // parameter.text = L"比较好看 的夏目安安";
     // parameter.image = "out.png";
     // parameter.text = L"hello word";
@@ -79,21 +76,12 @@ int32_t main(int32_t argc, char *argv[]){
         ananImage = parameter.current_path + IMAGE_PATH + anan.GetAnansImageName((AnansFace)parameter.face);
     }
     glm::uvec4 nopepad;
-    if(parameter.face == (uint32_t)AnansFace::Tsundere){
-        nopepad = GetNopepadInfo(ananImage, glm::vec2(0.112, 0.49), glm::vec2(.775, .3025));
+    if(parameter.face == AnansFace::Tsundere){
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(0.15, 0.45), glm::vec2(.78, .4));
     }
-    else if(parameter.face == (uint32_t)AnansFace::Body){
-        addHand = false;
-        nopepad = GetNopepadInfo(ananImage, glm::vec2(.15, 0), glm::vec2(.25, .425));
-        // nopepad = GetNopepadInfo(ananImage, glm::vec2(0.15, 0.05), glm::vec2(.3, .6));
-    }
-    else if(parameter.face == (uint32_t)AnansFace::Mutsumi){
+    else if(parameter.face == AnansFace::Mutsumi || parameter.face == AnansFace::Mortis || parameter.face == AnansFace::Hiro){
         addHand = false;
         nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .45));
-    }
-    else if(parameter.face == (uint32_t)AnansFace::Hiro){
-        addHand = false;
-        nopepad = GetNopepadInfo(ananImage, glm::vec2(.1, 0), glm::vec2(.5, .45));
     }
     else{
         nopepad = GetNopepadInfo(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.65, .30));
@@ -103,10 +91,15 @@ int32_t main(int32_t argc, char *argv[]){
     if(extent == glm::uvec2(0)){
         return -1;
     }
-    anan.SetFontFile(parameter.fontFile);
+    anan.SetFace(parameter.face);
     anan.SetTextColor(parameter.textColor);
-    anan.SetFace((AnansFace)parameter.face);
     if(parameter.enableOutline)anan.EnableOutline();
+    if(parameter.fontFile != ""){
+        anan.SetFontFile(parameter.fontFile);
+    }
+    else if(parameter.face >= AnansFace::Mutsumi){
+        anan.SetFontFile(FONT_PATH"SourceHanSansSC-Regular-2.otf");
+    }
     if(parameter.image != ""){
         if(parameter.text != L"")extent.x *= .5f;
         anan.AddImage(parameter.image, offset, extent);
