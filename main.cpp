@@ -79,9 +79,13 @@ int32_t main(int32_t argc, char *argv[]){
     if(parameter.face == AnansFace::Tsundere){
         nopepad = GetNopepadInfo(ananImage, glm::vec2(0.15, 0.45), glm::vec2(.78, .4));
     }
-    else if(parameter.face == AnansFace::Mutsumi || parameter.face == AnansFace::Mortis || parameter.face == AnansFace::Hiro){
+    else if(parameter.face == AnansFace::Shikaku_Mutsumi){
         addHand = false;
-        nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .45));
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.01, 0.05), glm::vec2(.5, .5));
+    }
+    else if(parameter.face >= AnansFace::Mutsumi){
+        addHand = false;
+        nopepad = GetNopepadInfo(ananImage, glm::vec2(.05, 0), glm::vec2(.5, .5));
     }
     else{
         nopepad = GetNopepadInfo(ananImage, glm::vec2(0.175, 0.68), glm::vec2(.65, .30));
@@ -89,16 +93,17 @@ int32_t main(int32_t argc, char *argv[]){
     offset = glm::uvec2(nopepad.x, nopepad.y);
     extent = glm::uvec2(nopepad.z, nopepad.w);
     if(extent == glm::uvec2(0)){
+        printf("failed to calculation nopepad size, face %d, anan image:%s\n", parameter.face, ananImage.c_str());
         return -1;
     }
     anan.SetFace(parameter.face);
     anan.SetTextColor(parameter.textColor);
-    if(parameter.enableOutline)anan.EnableOutline();
+    if(parameter.enableOutline){
+        anan.EnableOutline();
+        anan.SetFontFile(FONT_PATH"SourceHanSansSC-Regular-2.otf");
+    }
     if(parameter.fontFile != ""){
         anan.SetFontFile(parameter.fontFile);
-    }
-    else if(parameter.face >= AnansFace::Mutsumi){
-        anan.SetFontFile(FONT_PATH"SourceHanSansSC-Regular-2.otf");
     }
     if(parameter.image != ""){
         if(parameter.text != L"")extent.x *= .5f;

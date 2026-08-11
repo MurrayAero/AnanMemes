@@ -179,6 +179,8 @@ std::string AnansMemes::GetAnansImageName(AnansFace face){
         return "Tsundere.png";
     case AnansFace::Mutsumi:
         return "Mutsumi.jpg";
+    case AnansFace::Shikaku_Mutsumi:
+        return "Shikaku_Mutsumi.jpg";
     case AnansFace::Mortis:
         return "Mortis.jpg";
     case AnansFace::Hiro:

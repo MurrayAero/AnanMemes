@@ -42,6 +42,7 @@ enum class AnansFace{
     Angry,
     Speechless,
     Tsundere,
+    Shikaku_Mutsumi,
     Mutsumi,
     Mortis,
     Hiro,
