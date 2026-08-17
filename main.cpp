@@ -97,7 +97,10 @@ int32_t main(int32_t argc, char *argv[]){
         return -1;
     }
     anan.SetFace(parameter.face);
-    anan.SetTextColor(parameter.textColor);
+    if(parameter.face == AnansFace::Deepseek)
+        anan.SetTextColor(glm::uvec3(37, 47, 96));
+    else
+        anan.SetTextColor(parameter.textColor);
     if(parameter.enableOutline){
         anan.EnableOutline();
         anan.SetFontFile(FONT_PATH"SourceHanSansSC-Regular-2.otf");
@@ -119,7 +122,7 @@ int32_t main(int32_t argc, char *argv[]){
 
     int32_t result = anan.SaveImage(parameter.out);
     if(result){
-        printf("success to save image.\n");
+        printf("successfully saved the image.\n");
     }
     else{
         printf("failed to save image. error code is %d\n", result);

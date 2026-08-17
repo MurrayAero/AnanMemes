@@ -46,6 +46,7 @@ enum class AnansFace{
     Mutsumi,
     Mortis,
     Hiro,
+    Deepseek,
     Max_Face
 };
 struct AnanImage{

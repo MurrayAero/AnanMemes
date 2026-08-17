@@ -192,9 +192,11 @@ namespace cp{
         printf("\t4 = angry\n");
         printf("\t5 = speechless\n");
         printf("\t6 = tsundere\n");
-        printf("\t7 = mutsumi\n");
-        printf("\t8 = mortis\n");
-        printf("\t9 = Hiro\n");
+        printf("\t7 = Shikaku_Mutsumi\n");
+        printf("\t8 = mutsumi\n");
+        printf("\t9 = mortis\n");
+        printf("\t10 = Hiro\n");
+        printf("\t11 = Deeepseek\n");
     }
     static inline bool GetArgument(int32_t argc, char *argv[], CommandParameter *parameter){
 //         int32_t wargc;
